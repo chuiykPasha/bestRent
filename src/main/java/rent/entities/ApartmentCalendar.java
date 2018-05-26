@@ -3,31 +3,40 @@ package rent.entities;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "ApartmentCalendar")
 public class ApartmentCalendar implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Integer Id;
     @Column(nullable = false)
     private Date arrival;
     @Column(nullable = false)
     private Date departure;
 
+    @ManyToOne
+    @JoinColumn(name = "apartmentId", nullable = false)
+    private Apartment apartment;
+
+
+
     public ApartmentCalendar() {}
 
-    public ApartmentCalendar(Date arrival, Date departure) {
+    public ApartmentCalendar(Date arrival, Date departure, Apartment apartment) {
         this.arrival = arrival;
         this.departure = departure;
+        this.apartment = apartment;
     }
 
     public Integer getId() {
-        return id;
+        return Id;
     }
 
     public void setId(Integer id) {
-        this.id = id;
+        this.Id = id;
     }
 
     public Date getArrival() {
@@ -44,5 +53,13 @@ public class ApartmentCalendar implements Serializable {
 
     public void setDeparture(Date departure) {
         this.departure = departure;
+    }
+
+    public Apartment getApartment() {
+        return apartment;
+    }
+
+    public void setApartment(Apartment apartment) {
+        this.apartment = apartment;
     }
 }
