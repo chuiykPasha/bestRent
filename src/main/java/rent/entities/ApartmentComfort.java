@@ -10,7 +10,7 @@ import java.util.Set;
 public class ApartmentComfort implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer Id;
+    private Integer id;
     @Column(nullable = false)
     private String name;
 
@@ -24,11 +24,11 @@ public class ApartmentComfort implements Serializable {
     }
 
     public Integer getId() {
-        return Id;
+        return id;
     }
 
     public void setId(Integer id) {
-        this.Id = id;
+        this.id = id;
     }
 
     public String getName() {

@@ -27,7 +27,7 @@ public class MainController {
     }
 
     @PostMapping("/register")
-    public String addUser(User user) {
+    public String register(User user) {
         System.out.println("TYT");
         User find = userRepository.findByUsername(user.getUsername());
 

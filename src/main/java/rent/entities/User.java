@@ -11,15 +11,10 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Column
     private String username;
-    @Column
     private String password;
-    @Column
-    @Null
     @Type(type="org.hibernate.type.BooleanType")
     private boolean active;
-
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "userRole", joinColumns = @JoinColumn(name = "userId"))
     @Enumerated(EnumType.STRING)

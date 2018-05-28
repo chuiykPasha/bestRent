@@ -8,7 +8,7 @@ import java.io.Serializable;
 public class ApartmentImage implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer Id;
+    private Integer id;
     @Column(nullable = false)
     private String path;
 
@@ -24,11 +24,11 @@ public class ApartmentImage implements Serializable {
     }
 
     public Integer getId() {
-        return Id;
+        return id;
     }
 
     public void setId(Integer id) {
-        this.Id = id;
+        this.id = id;
     }
 
     public String getPath() {

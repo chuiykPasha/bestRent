@@ -11,7 +11,7 @@ import java.util.Set;
 public class ApartmentCalendar implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer Id;
+    private Integer id;
     @Column(nullable = false)
     private Date arrival;
     @Column(nullable = false)
@@ -32,11 +32,11 @@ public class ApartmentCalendar implements Serializable {
     }
 
     public Integer getId() {
-        return Id;
+        return id;
     }
 
     public void setId(Integer id) {
-        this.Id = id;
+        this.id = id;
     }
 
     public Date getArrival() {
