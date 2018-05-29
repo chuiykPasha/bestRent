@@ -28,16 +28,13 @@ public class MainController {
 
     @PostMapping("/register")
     public String register(User user) {
-        System.out.println("TYT");
-        User find = userRepository.findByUsername(user.getUsername());
+        User find = userRepository.findByEmail(user.getEmail());
 
         if(find != null) {
             return "/register";
         }
 
-        user.setActive(true);
         user.setRoles(Collections.singleton(Role.USER));
-        System.out.println(user.isActive());
         userRepository.save(user);
         return "redirect:/login";
     }

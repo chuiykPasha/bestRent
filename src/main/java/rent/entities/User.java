@@ -1,8 +1,6 @@
 package rent.entities;
 
-import org.hibernate.annotations.Type;
 import javax.persistence.*;
-import javax.validation.constraints.Null;
 import java.util.Set;
 
 @Entity
@@ -11,19 +9,24 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private String username;
+    private String email;
+    private String name;
+    private String surName;
     private String password;
-    @Type(type="org.hibernate.type.BooleanType")
-    private boolean active;
+    //@Type(type="org.hibernate.type.BooleanType")
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "userRole", joinColumns = @JoinColumn(name = "userId"))
     @Enumerated(EnumType.STRING)
     private Set<Role> roles;
 
-    public User(String username, String password, boolean active) {
-        this.username = username;
+    public User() {}
+
+    public User(String email, String name, String surName, String password, Set<Role> roles) {
+        this.email = email;
+        this.name = name;
+        this.surName = surName;
         this.password = password;
-        this.active = active;
+        this.roles = roles;
     }
 
     public Integer getId() {
@@ -34,12 +37,28 @@ public class User {
         this.id = id;
     }
 
-    public String getUsername() {
-        return username;
+    public String getEmail() {
+        return email;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getSurName() {
+        return surName;
+    }
+
+    public void setSurName(String surName) {
+        this.surName = surName;
     }
 
     public String getPassword() {
@@ -56,13 +75,5 @@ public class User {
 
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
-    }
-
-    public boolean isActive() {
-        return active;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
     }
 }
