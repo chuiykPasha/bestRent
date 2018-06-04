@@ -1,17 +1,32 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Spring Security Example </title>
+    <title>Register</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}">
 </head>
 <body>
-<div th:if="${param.error}">
-    Invalid username and password.
-</div>
-<form th:action="@{/register}" method="post">
-    <div><label> Email : <input type="text" name="email"/> </label></div>
-    <div><label> Password: <input type="password" name="password"/> </label></div>
-    <input type="hidden" name="active" value="true">
-    <div><input type="submit" value="Sign In"/></div>
+<div class="container">
+<form th:action="@{/register}" th:object="${registerForm}" method="post">
+    <div class="row form-group justify-content-center">
+        <label class="col-2 col-form-label"> Email :</label>
+        <div class="col-6">
+            <input class="form-control" placeholder="Email" type="text" name="email"/>
+            <p class="alert alert-danger mt-2" role="alert" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+        </div>
+    </div>
+    <div class="row form-group justify-content-center">
+        <label class="col-2 col-form-label"> Password:</label>
+        <div class="col-6">
+            <input class="form-control" placeholder="Password" type="password" name="password">
+            <p class="alert alert-danger mt-2" role="alert" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
+        </div>
+    </div>
+    <div class="row justify-content-center">
+        <button class="btn btn-primary" type="submit">Register</button>
+    </div>
 </form>
+</div>
+<script type="text/javascript" th:src="@{/js/jquery-3.3.1.js}"></script>
+<script type="text/javascript" th:src="@{/js/bootstrap.min.js}"></script>
 </body>
 </html>

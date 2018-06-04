@@ -28,23 +28,6 @@ public class CustomDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException("No user found by email " + email);
         }
 
-        boolean enabled = true;
-        boolean accountNonExpired = true;
-        boolean credentialsNonExpired = true;
-        boolean accountNonLocked = true;
-
-        return new org.springframework.security.core.userdetails.User(user.getEmail(),
-                user.getPassword().toLowerCase(), enabled,
-                accountNonExpired, credentialsNonExpired, accountNonLocked,
-                getAuthorities(user.getRoles()));
-    }
-
-    private List<GrantedAuthority> getAuthorities(Set<Role> roles) {
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        for(Role role : roles) {
-            authorities.add(new SimpleGrantedAuthority(role.name()));
-        }
-
-        return authorities;
+        return user;
     }
 }
