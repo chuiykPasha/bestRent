@@ -18,7 +18,7 @@ public class User implements UserDetails ,Serializable {
     private String name;
     private String surName;
     private String password;
-    //@Type(type="org.hibernate.type.BooleanType")
+
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "userRole", joinColumns = @JoinColumn(name = "userId"))
     @Enumerated(EnumType.STRING)
@@ -73,7 +73,7 @@ public class User implements UserDetails ,Serializable {
 
     @Override
     public String getUsername() {
-        return email;
+        return surName + " " + name;
     }
 
     @Override

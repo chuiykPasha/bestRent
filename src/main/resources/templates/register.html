@@ -1,24 +1,44 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/layout">
 <head>
     <title>Register</title>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}">
 </head>
 <body>
-<div class="container">
+<div layout:fragment="content">
 <form th:action="@{/register}" th:object="${registerForm}" method="post">
+    <div class="row form-group justify-content-center">
+        <label class="col-2 col-form-label"> Name:</label>
+        <div class="col-6">
+            <input class="form-control" placeholder="Name" type="text" name="name" required />
+            <p class="alert alert-danger mt-2" role="alert" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
+        </div>
+    </div>
+    <div class="row form-group justify-content-center">
+        <label class="col-2 col-form-label"> Sur name:</label>
+        <div class="col-6">
+            <input class="form-control" placeholder="Surname" type="text" name="surName" required />
+            <p class="alert alert-danger mt-2" role="alert" th:if="${#fields.hasErrors('surName')}" th:errors="*{surName}"></p>
+        </div>
+    </div>
     <div class="row form-group justify-content-center">
         <label class="col-2 col-form-label"> Email :</label>
         <div class="col-6">
-            <input class="form-control" placeholder="Email" type="text" name="email"/>
+            <input class="form-control" placeholder="Email" type="text" name="email" required />
             <p class="alert alert-danger mt-2" role="alert" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
         </div>
     </div>
     <div class="row form-group justify-content-center">
         <label class="col-2 col-form-label"> Password:</label>
         <div class="col-6">
-            <input class="form-control" placeholder="Password" type="password" name="password">
+            <input class="form-control" placeholder="Password" type="password" name="password" required />
             <p class="alert alert-danger mt-2" role="alert" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
+        </div>
+    </div>
+    <div class="row form-group justify-content-center">
+        <label class="col-2 col-form-label"> Confirm password:</label>
+        <div class="col-6">
+            <input class="form-control" placeholder="Confirm password" type="password" name="confirmPassword" required />
+            <p class="alert alert-danger mt-2" role="alert" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></p>
         </div>
     </div>
     <div class="row justify-content-center">
@@ -26,7 +46,5 @@
     </div>
 </form>
 </div>
-<script type="text/javascript" th:src="@{/js/jquery-3.3.1.js}"></script>
-<script type="text/javascript" th:src="@{/js/bootstrap.min.js}"></script>
 </body>
 </html>

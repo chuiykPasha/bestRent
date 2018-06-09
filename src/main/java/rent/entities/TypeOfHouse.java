@@ -6,19 +6,19 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "TypeOfHousing")
-public class TypeOfHousing implements Serializable {
+@Table(name = "TypeOfHouse")
+public class TypeOfHouse implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @Column(nullable = false)
     private String name;
-    @OneToMany(mappedBy = "typeOfHousing")
+    @OneToMany(mappedBy = "typeOfHouse")
     private Set<Apartment> apartments = new HashSet<>();
 
-    public TypeOfHousing() {}
+    public TypeOfHouse() {}
 
-    public TypeOfHousing(String name) {
+    public TypeOfHouse(String name) {
         this.name = name;
     }
 

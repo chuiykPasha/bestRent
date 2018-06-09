@@ -21,8 +21,8 @@ public class Apartment implements Serializable {
     private int maxNumberOfGuests;
 
     @ManyToOne
-    @JoinColumn(name = "typeOfHousingId", nullable = false)
-    private TypeOfHousing typeOfHousing;
+    @JoinColumn(name = "typeOfHouseId", nullable = false)
+    private TypeOfHouse typeOfHouse;
 
     @ManyToOne
     @JoinColumn(name = "availableToGuestId", nullable = false)
@@ -44,12 +44,12 @@ public class Apartment implements Serializable {
 
     public Apartment() {}
 
-    public Apartment(String description, String location, float price, int maxNumberOfGuests, TypeOfHousing typeOfHousing, AvailableToGuest availableToGuest) {
+    public Apartment(String description, String location, float price, int maxNumberOfGuests, TypeOfHouse typeOfHouse, AvailableToGuest availableToGuest) {
         this.description = description;
         this.location = location;
         this.price = price;
         this.maxNumberOfGuests = maxNumberOfGuests;
-        this.typeOfHousing = typeOfHousing;
+        this.typeOfHouse = typeOfHouse;
         this.availableToGuest = availableToGuest;
     }
 
@@ -93,12 +93,12 @@ public class Apartment implements Serializable {
         this.maxNumberOfGuests = maxNumberOfGuests;
     }
 
-    public TypeOfHousing getTypeOfHousing() {
-        return typeOfHousing;
+    public TypeOfHouse getTypeOfHouse() {
+        return typeOfHouse;
     }
 
-    public void setTypeOfHousing(TypeOfHousing typeOfHousing) {
-        this.typeOfHousing = typeOfHousing;
+    public void setTypeOfHouse(TypeOfHouse typeOfHouse) {
+        this.typeOfHouse = typeOfHouse;
     }
 
     public AvailableToGuest getAvailableToGuest() {

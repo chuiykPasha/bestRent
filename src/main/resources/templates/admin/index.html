@@ -1,27 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/adminLayout">
 <head>
     <meta charset="UTF-8">
     <title>Admin panel</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}">
 </head>
 <body>
-<div class="container">
-    <div class="row">
-        <div class="col-4">
-            <div class="list-group">
-                <a th:href="@{/admin/available-to-guest}" class="list-group-item list-group-item-action">Apartment comfort</a>
-                <a href="#" class="list-group-item list-group-item-action">Available to guest</a>
-                <a href="#" class="list-group-item list-group-item-action">Type of housing</a>
-            </div>
-        </div>
-        <div class="col-8">
-            <span sec:authorize="isAuthenticated()">Welcome <span sec:authentication="name"></span></span>
-        </div>
-    </div>
+<div layout:fragment="content">
+    <p>CONTENT</p>
 </div>
-<script type="text/javascript" th:src="@{/js/jquery-3.3.1.js}"></script>
-<script type="text/javascript" th:src="@{/js/bootstrap.min.js}"></script>
 </body>
 </html>
