@@ -6,13 +6,13 @@
 </head>
 <body>
 <div layout:fragment="content">
-    <h3>Create</h3>
-    <form th:action="@{/admin/available-to-guest/create}" th:object="${availableToGuestForm}" method="post">
-        <input type="hidden" name="id">
+    <h3>Update</h3>
+    <form th:action="@{/admin/available-to-guest/update}" th:object="${availableToGuestForm}" method="post">
         <div class="row form-group justify-content-center">
+            <input th:value="${availableToGuestForm.id}" type="hidden" name="id">
             <label class="col-2 col-form-label"> Name :</label>
             <div class="col-6">
-                <input class="form-control" th:value="${availableToGuestForm.name}" placeholder="Name" type="text" name="name" required />
+                <input class="form-control" placeholder="Name" type="text" th:value="${availableToGuestForm.name}" name="name" required />
                 <p class="alert alert-danger mt-2" role="alert" th:if="${#fields.hasErrors('name')}"
                    th:errors="*{name}"></p>
             </div>

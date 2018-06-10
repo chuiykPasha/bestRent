@@ -1,8 +1,9 @@
 package rent.form;
 
 import javax.validation.constraints.NotEmpty;
+import java.io.Serializable;
 
-public class AvailableToGuestForm {
+public class AvailableToGuestForm implements Serializable{
     private Integer id;
     @NotEmpty
     private String name;

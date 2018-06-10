@@ -2,16 +2,13 @@ package rent.contoller.admin;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.ObjectError;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import rent.entities.AvailableToGuest;
 import rent.form.AvailableToGuestForm;
 import rent.repository.AvailableToGuestRepository;
-
 import javax.validation.Valid;
 
 @Controller
@@ -21,16 +18,17 @@ public class AvailableToGuestController {
     private AvailableToGuestRepository availableToGuestRepository;
 
     @GetMapping("/available-to-guest")
-    public String index() {
+    public String index(Model model) {
+        model.addAttribute("availableToGuests", availableToGuestRepository.findAll());
         return "/admin/availableToGuest/index";
     }
 
-    @GetMapping("/create/available-to-guest")
+    @GetMapping("/available-to-guest/create")
     public String save(AvailableToGuestForm availableToGuestForm) {
         return "/admin/availableToGuest/create";
     }
 
-    @PostMapping("/create/available-to-guest")
+    @PostMapping("/available-to-guest/create")
     public String save(@Valid AvailableToGuestForm availableToGuestForm, BindingResult bindingResult) {
         if(bindingResult.hasErrors()) {
             return "/admin/availableToGuest/create";
@@ -39,10 +37,51 @@ public class AvailableToGuestController {
         AvailableToGuest availableToGuest = availableToGuestRepository.findByName(availableToGuestForm.getName());
 
         if(availableToGuest != null) {
+            bindingResult.rejectValue("name", null, "Name already exists");
             return "/admin/availableToGuest/create";
         }
 
         availableToGuestRepository.save(new AvailableToGuest(availableToGuestForm.getName()));
+        return "redirect:/admin/available-to-guest";
+    }
+
+    @GetMapping("/available-to-guest/update/{availableToGuest}")
+    public String update(AvailableToGuest availableToGuest, Model model, BindingResult bindingResult) {
+        model.addAttribute("availableToGuestForm", new AvailableToGuestForm(availableToGuest.getId(), availableToGuest.getName()));
+        model.addAttribute("org.springframework.validation.BindingResult.availableToGuestForm", bindingResult);
+        return "/admin/availableToGuest/update";
+    }
+
+    @PostMapping("/available-to-guest/update")
+    public String update(@Valid AvailableToGuestForm availableToGuestForm, BindingResult bindingResult, RedirectAttributes attr) {
+        if(bindingResult.hasErrors()) {
+            return "/admin/availableToGuest/update/" + availableToGuestForm.getId();
+        }
+
+        AvailableToGuest availableToGuest = availableToGuestRepository.getOne(availableToGuestForm.getId());
+
+        if(availableToGuest != null) {
+            bindingResult.rejectValue("name", null, "Name already exists");
+            attr.addFlashAttribute("id", 1);
+            attr.addFlashAttribute("org.springframework.validation.BindingResult.availableToGuestForm", bindingResult);
+            return "redirect:/admin/available-to-guest/update/1";
+        }
+
+        return "redirect:/admin/available-to-guest";
+    }
+
+    @GetMapping("/available-to-guest/delete/{availableToGuest}")
+    public String delete(AvailableToGuest availableToGuest, Model model) {
+        model.addAttribute("availableToGuestForm", new AvailableToGuestForm(availableToGuest.getId(), availableToGuest.getName()));
+        return "/admin/availableToGuest/confirmDelete";
+    }
+
+    @PostMapping("/available-to-guest/delete")
+    public String delete(AvailableToGuestForm availableToGuestForm) {
+        if(availableToGuestForm.getId() != null) {
+            availableToGuestRepository.deleteById(availableToGuestForm.getId());
+        }
+
         return "redirect:/admin/available-to-guest";
     }
 }
