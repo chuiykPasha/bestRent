@@ -6,8 +6,8 @@
 </head>
 <body>
 <div layout:fragment="content">
-    <p><a th:href="@{/admin/available-to-guest/create}">Create new</a></p>
-    <table th:if="${availableToGuests.size() != 0}" class="table table-hover">
+    <p><a th:href="@{/admin/type-of-house/create}">Create new</a></p>
+    <table th:if="${typeOfHouses.size() != 0}" class="table table-hover">
         <thead>
         <tr>
             <th scope="col">Name</th>
@@ -16,10 +16,10 @@
         </tr>
         </thead>
         <tbody>
-        <tr th:each="availableToGuest : ${availableToGuests}">
-            <td th:text="${availableToGuest.name}"></td>
-            <td><a th:href="@{/admin/available-to-guest/update/} + ${availableToGuest.id}">Edit</a></td>
-            <td><a th:href="@{/admin/available-to-guest/delete/} + ${availableToGuest.id}">Delete</a></td>
+        <tr th:each="typeOfHouse : ${typeOfHouses}">
+            <td th:text="${typeOfHouse.name}"></td>
+            <td><a th:href="@{/admin/type-of-house/update/} + ${typeOfHouse.id}">Edit</a></td>
+            <td><a th:href="@{/admin/type-of-house/delete/} + ${typeOfHouse.id}">Delete</a></td>
         </tr>
         </tbody>
     </table>

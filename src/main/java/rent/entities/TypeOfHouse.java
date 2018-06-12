@@ -22,6 +22,11 @@ public class TypeOfHouse implements Serializable {
         this.name = name;
     }
 
+    public TypeOfHouse(Integer id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
     public Integer getId() {
         return id;
     }

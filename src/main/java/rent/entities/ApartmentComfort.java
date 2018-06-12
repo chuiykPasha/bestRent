@@ -23,6 +23,11 @@ public class ApartmentComfort implements Serializable {
         this.name = name;
     }
 
+    public ApartmentComfort(Integer id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
     public Integer getId() {
         return id;
     }

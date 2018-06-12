@@ -7,12 +7,11 @@
 <body>
 <div layout:fragment="content">
     <h3>Create</h3>
-    <form th:action="@{/admin/available-to-guest/create}" th:object="${availableToGuestForm}" method="post">
-        <input type="hidden" name="id">
+    <form th:action="@{/admin/type-of-house/create}" th:object="${typeOfHouseForm}" method="post">
         <div class="row form-group justify-content-center">
             <label class="col-2 col-form-label"> Name :</label>
             <div class="col-6">
-                <input class="form-control" th:value="${availableToGuestForm.name}" placeholder="Name" type="text" name="name" required />
+                <input class="form-control" th:value="${typeOfHouseForm.name}" placeholder="Name" type="text" name="name" required />
                 <p class="alert alert-danger mt-2" role="alert" th:if="${#fields.hasErrors('name')}"
                    th:errors="*{name}"></p>
             </div>
@@ -22,7 +21,7 @@
         </div>
     </form>
     <div>
-        <a th:href="@{/admin/available-to-guest}">Back to list</a>
+        <a th:href="@{/admin/type-of-houses}">Back to list</a>
     </div>
 </div>
 </body>

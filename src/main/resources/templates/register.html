@@ -9,21 +9,21 @@
     <div class="row form-group justify-content-center">
         <label class="col-2 col-form-label"> Name:</label>
         <div class="col-6">
-            <input class="form-control" placeholder="Name" type="text" name="name" required />
+            <input class="form-control" placeholder="Name" type="text" th:value="${registerForm.name}" name="name" required />
             <p class="alert alert-danger mt-2" role="alert" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
         </div>
     </div>
     <div class="row form-group justify-content-center">
         <label class="col-2 col-form-label"> Sur name:</label>
         <div class="col-6">
-            <input class="form-control" placeholder="Surname" type="text" name="surName" required />
+            <input class="form-control" placeholder="Surname" type="text" th:value="${registerForm.surName}" name="surName" required />
             <p class="alert alert-danger mt-2" role="alert" th:if="${#fields.hasErrors('surName')}" th:errors="*{surName}"></p>
         </div>
     </div>
     <div class="row form-group justify-content-center">
         <label class="col-2 col-form-label"> Email :</label>
         <div class="col-6">
-            <input class="form-control" placeholder="Email" type="text" name="email" required />
+            <input class="form-control" placeholder="Email" type="text" th:value="${registerForm.email}" name="email" required />
             <p class="alert alert-danger mt-2" role="alert" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
         </div>
     </div>

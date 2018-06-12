@@ -46,27 +46,26 @@ public class AvailableToGuestController {
     }
 
     @GetMapping("/available-to-guest/update/{availableToGuest}")
-    public String update(AvailableToGuest availableToGuest, Model model, BindingResult bindingResult) {
+    public String update(AvailableToGuest availableToGuest, Model model) {
         model.addAttribute("availableToGuestForm", new AvailableToGuestForm(availableToGuest.getId(), availableToGuest.getName()));
-        model.addAttribute("org.springframework.validation.BindingResult.availableToGuestForm", bindingResult);
         return "/admin/availableToGuest/update";
     }
 
     @PostMapping("/available-to-guest/update")
     public String update(@Valid AvailableToGuestForm availableToGuestForm, BindingResult bindingResult, RedirectAttributes attr) {
         if(bindingResult.hasErrors()) {
-            return "/admin/availableToGuest/update/" + availableToGuestForm.getId();
+            return "/admin/availableToGuest/update";
         }
 
-        AvailableToGuest availableToGuest = availableToGuestRepository.getOne(availableToGuestForm.getId());
+        AvailableToGuest update = availableToGuestRepository.findByName(availableToGuestForm.getName());
 
-        if(availableToGuest != null) {
+        if(update != null) {
             bindingResult.rejectValue("name", null, "Name already exists");
-            attr.addFlashAttribute("id", 1);
-            attr.addFlashAttribute("org.springframework.validation.BindingResult.availableToGuestForm", bindingResult);
-            return "redirect:/admin/available-to-guest/update/1";
+            return "/admin/availableToGuest/update";
         }
 
+        update = new AvailableToGuest(availableToGuestForm.getId(), availableToGuestForm.getName());
+        availableToGuestRepository.save(update);
         return "redirect:/admin/available-to-guest";
     }
 

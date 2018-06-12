@@ -22,6 +22,11 @@ public class AvailableToGuest implements Serializable {
         this.name = name;
     }
 
+    public AvailableToGuest(Integer id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
     public Integer getId() {
         return id;
     }
