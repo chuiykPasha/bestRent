@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/layout">
+<head>
+    <title>Hello World!</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <h1>Create Step two</h1>
+    <form th:action="@{/apartment-create-step-two}" th:object="${apartmentLocationForm}" method="post">
+        <div class="row">
+            <div class="col-12 form-group">
+                <label for="location">Location</label>
+                <input class="form-control" placeholder="Location" type="text"
+                       th:value="${apartmentLocationForm.location}" name="location" id="location" required readonly/>
+                <p class="alert alert-danger mt-2" role="alert" th:if="${#fields.hasErrors('location')}"
+                   th:errors="*{location}"></p>
+            </div>
+            <div class="col-12">
+                <div id="map" style="max-height: 500px; height: 500px;">
+
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center mt-3">
+            <button class="btn btn-primary" type="submit">next</button>
+        </div>
+    </form>
+    <script src="https://maps.googleapis.com/maps/api/js?&libraries=geometry,places&ext=.js&language=en&key=AIzaSyARUEraKEzNg1LcmLzZ6-BanqkeVLAEbLM"></script>
+    <script>
+        $(document).ready(function(){
+            $.get("https://ipapi.co/json", function(response) {
+               var latitude = response.latitude.toFixed(2);
+               var longitude = response.longitude.toFixed(2);
+
+                var myLatlng = new google.maps.LatLng(latitude, longitude);
+                var myOptions = {
+                    zoom: 13,
+                    center: myLatlng
+                }
+
+                var map = new google.maps.Map(document.getElementById("map"), myOptions);
+                var geocoder = new google.maps.Geocoder();
+
+                google.maps.event.addListener(map, 'click', function (event) {
+                    geocoder.geocode({
+                        'latLng': event.latLng
+                    }, function (results, status) {
+                        if (status == google.maps.GeocoderStatus.OK) {
+                            if (results[0]) {
+                                document.getElementById("location").value = results[0].formatted_address;
+                            }
+                        }
+                    });
+                });
+            })
+        })
+    </script>
+</div>
+</body>
+</html>

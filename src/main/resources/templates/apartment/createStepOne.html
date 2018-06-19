@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/layout">
+<head>
+    <title>Hello World!</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <h1>Create Step one</h1>
+    <form th:action="@{/apartment-create-step-one}" th:object="${apartmentInfoForm}" method="post">
+        <div class="row">
+            <div class="col-12">
+                <div class="row">
+                    <div class="col-4 form-group">
+                        <label for="typeOfHouse">Type of house</label>
+                        <select th:field="*{typeOfHouseId}" class="form-control" id="typeOfHouse">
+                            <option th:each="type : ${apartmentInfoForm.typeOfHouses}" th:value="${type.id}"
+                                    th:utext="${type.name}"/>
+                        </select>
+                    </div>
+                    <div class="col-4 form-group">
+                        <label for="availableToGuest">Available to guest</label>
+                        <select th:field="*{availableToGuestId}" class="form-control" id="availableToGuest">
+                            <option th:each="availableToGuest : ${apartmentInfoForm.availableToGuests}"
+                                    th:value="${availableToGuest.id}" th:utext="${availableToGuest.name}"/>
+                        </select>
+                    </div>
+                    <div class="col-4 form-group">
+                        <label for="maxNumberOfGuests">Max number of guests</label>
+                        <input th:value="${apartmentInfoForm.maxNumberOfGuests}" th:field="*{maxNumberOfGuests}" class="form-control" id="maxNumberOfGuests" value="1"
+                               min="1"
+                               max="16" type="number"/>
+                        <p class="alert alert-danger mt-2" role="alert"
+                           th:if="${#fields.hasErrors('maxNumberOfGuests')}"
+                           th:errors="*{maxNumberOfGuests}"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea th:value="${apartmentInfoForm.description}" th:field="*{description}" class="form-control" id="description" rows="3"></textarea>
+                    <p class="alert alert-danger mt-2" role="alert"
+                       th:if="${#fields.hasErrors('description')}"
+                       th:errors="*{description}"></p>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="form-group">
+                    <label for="price">Price</label>
+                    <input th:value="${apartmentInfoForm.price}" th:field="*{price}" class="form-control" id="price"></input>
+                    <p class="alert alert-danger mt-2" role="alert"
+                       th:if="${#fields.hasErrors('price')}"
+                       th:errors="*{price}"></p>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="form-group">
+                    <label for="apartmentComforts">Apartment comforts</label>
+                    <select th:field="*{selectedComforts}" multiple="multiple" class="chosen-select form-control" id="apartmentComforts">
+                        <option th:each="comfort : ${apartmentInfoForm.comforts}" th:value="${comfort.id}" th:utext="${comfort.name}"></option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <button class="btn btn-primary" type="submit">next</button>
+        </div>
+    </form>
+    <script type="text/javascript" th:src="@{/js/chosen.jquery.js}"></script>
+    <script>
+        $(document).ready(function(){
+            $('.chosen-select').chosen();
+            $('chosen-select-deselect').chosen({ allow_single_deselect: true });
+        })
+    </script>
+</div>
+</body>
+</html>

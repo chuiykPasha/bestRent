@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/layout">
+<head>
+    <title>Hello World!</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <h1>Create Step three</h1>
+    <form th:action="@{/apartment-create-step-three}" th:object="${apartmentImagesForm}" enctype="multipart/form-data"
+          method="post">
+        <div class="row justify-content-center">
+            <div class="col-4 form-group">
+                <label for="images">Images</label>
+                <input class="form-control" type="file" name="images" multiple="multiple" id="images"/>
+                <p class="alert alert-danger mt-2" role="alert" th:if="${#fields.hasErrors('images')}"
+                   th:errors="*{images}"></p>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <button class="btn btn-primary" type="submit">next</button>
+        </div>
+    </form>
+</div>
+</body>
+</html>

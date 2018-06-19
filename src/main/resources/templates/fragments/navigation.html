@@ -16,6 +16,7 @@
         <div sec:authorize="isAuthenticated()">
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <a sec:authorize="hasAuthority('ADMIN')" th:if="${!#httpServletRequest.requestURI.contains('admin')}" th:href="@{/admin}">Admin panel</a>
+                <a th:href="@{/apartment-create-step-one}"> Add apartment </a>
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item dropdown">
                         <a sec:authentication="name" class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></a>
