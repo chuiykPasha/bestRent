@@ -44,6 +44,10 @@ public class Apartment implements Serializable {
 
     public Apartment() {}
 
+    public Apartment(Integer id) {
+        this.id = id;
+    }
+
     public Apartment(String description, String location, float price, int maxNumberOfGuests, TypeOfHouse typeOfHouse, AvailableToGuest availableToGuest) {
         this.description = description;
         this.location = location;

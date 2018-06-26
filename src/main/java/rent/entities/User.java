@@ -73,7 +73,7 @@ public class User implements UserDetails ,Serializable {
 
     @Override
     public String getUsername() {
-        return surName + " " + name;
+        return getEmail();
     }
 
     @Override

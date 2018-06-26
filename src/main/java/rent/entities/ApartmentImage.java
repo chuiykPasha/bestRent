@@ -10,7 +10,10 @@ public class ApartmentImage implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @Column(nullable = false)
-    private String path;
+    private String pathPhoto;
+
+    @Column(nullable = false)
+    private String linkPhoto;
 
     @ManyToOne
     @JoinColumn(name = "apartmentId", nullable = false)
@@ -18,8 +21,9 @@ public class ApartmentImage implements Serializable {
 
     public ApartmentImage() {}
 
-    public ApartmentImage(String path, Apartment apartment) {
-        this.path = path;
+    public ApartmentImage(String pathPhoto, String linkPhoto, Apartment apartment) {
+        this.pathPhoto = pathPhoto;
+        this.linkPhoto = linkPhoto;
         this.apartment = apartment;
     }
 
@@ -31,12 +35,20 @@ public class ApartmentImage implements Serializable {
         this.id = id;
     }
 
-    public String getPath() {
-        return path;
+    public String getPathPhoto() {
+        return pathPhoto;
     }
 
-    public void setPath(String path) {
-        this.path = path;
+    public void setPathPhoto(String pathPhoto) {
+        this.pathPhoto = pathPhoto;
+    }
+
+    public String getLinkPhoto() {
+        return linkPhoto;
+    }
+
+    public void setLinkPhoto(String linkPhoto) {
+        this.linkPhoto = linkPhoto;
     }
 
     public Apartment getApartment() {

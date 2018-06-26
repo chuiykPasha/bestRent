@@ -1,7 +1,19 @@
 package rent.contoller;
 
+import com.dropbox.core.*;
+import com.dropbox.core.http.OkHttp3Requestor;
+import com.dropbox.core.v1.DbxEntry;
+import com.dropbox.core.v2.DbxClientV2;
+import com.dropbox.core.v2.files.*;
+import com.dropbox.core.v2.sharing.RequestedVisibility;
+import com.dropbox.core.v2.sharing.SharedLinkMetadata;
+import com.dropbox.core.v2.sharing.SharedLinkSettings;
+import com.dropbox.core.v2.users.FullAccount;
+import netscape.security.Principal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.system.ApplicationHome;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -10,30 +22,53 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
+import rent.entities.Apartment;
+import rent.entities.ApartmentImage;
+import rent.entities.AvailableToGuest;
+import rent.entities.TypeOfHouse;
 import rent.form.ApartmentImagesForm;
 import rent.form.ApartmentInfoForm;
 import rent.form.ApartmentLocationForm;
-import rent.repository.ApartmentComfortRepository;
-import rent.repository.AvailableToGuestRepository;
-import rent.repository.TypeOfHouseRepository;
+import rent.repository.*;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.io.File;
-import java.io.IOException;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Controller
 @SessionAttributes(types = {ApartmentInfoForm.class, ApartmentLocationForm.class})
 public class ApartmentController {
+    private final String token = "5nsmQQ0lxRAAAAAAAAABIXytFyZh8DVGFd3VPIk9KO58T_ZlkoeOcIVxWrhgjH_T";
+    private DbxClientV2 client;
     @Autowired
     private TypeOfHouseRepository typeOfHouseRepository;
     @Autowired
     private AvailableToGuestRepository availableToGuestRepository;
     @Autowired
     private ApartmentComfortRepository apartmentComfortRepository;
+    @Autowired
+    private ApartmentRepository apartmentRepository;
+    private List<ApartmentImage> images = new CopyOnWriteArrayList<>();
+    @Autowired
+    private ApartmentImageRepository apartmentImageRepository;
+
+    private ApartmentController() {
+        DbxRequestConfig config = DbxRequestConfig.newBuilder("RentImages")
+                .withHttpRequestor(new OkHttp3Requestor(OkHttp3Requestor.defaultOkHttpClient()))
+                .build();
+        client = new DbxClientV2(config, token);
+    }
 
     @GetMapping("/")
     public String main() {
@@ -80,34 +115,91 @@ public class ApartmentController {
     }
 
     @PostMapping("/apartment-create-step-three")
-    public String saveApartmentAdvertisement(@Valid ApartmentImagesForm apartmentImagesForm, BindingResult result, SessionStatus sessionStatus) {
+    public String saveApartmentAdvertisement(@Valid ApartmentImagesForm apartmentImagesForm,
+                                             BindingResult result,
+                                             ApartmentInfoForm apartmentInfoForm,
+                                             ApartmentLocationForm apartmentLocationForm,
+                                             SessionStatus sessionStatus) throws MaxUploadSizeExceededException {
         if(result.hasErrors()) {
             return "/apartment/createStepThree";
         }
 
-        try {
-            if(apartmentImagesForm.getImages().get(0).getBytes().length == 0) {
-                result.rejectValue("images", null, "Need minimum one image");
-                return "/apartment/createStepThree";
+        final UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        Apartment apartment = new Apartment(apartmentInfoForm.getDescription(), apartmentLocationForm.getLocation(), apartmentInfoForm.getPrice().floatValue(),
+                apartmentInfoForm.getMaxNumberOfGuests(),
+                new TypeOfHouse(apartmentInfoForm.getTypeOfHouseId(), null),
+                new AvailableToGuest(apartmentInfoForm.getAvailableToGuestId(), null));
+        final int apartmentId = apartmentRepository.save(apartment).getId();
+
+        Runnable myRunnable = new Runnable() {
+
+            public void run() {
+                for (int i = 0; i < apartmentImagesForm.getImages().size(); i++) {
+                    String [] data = apartmentImagesForm.getImages().get(i).split(",");
+                    String img;
+
+                    if(data.length == 2) {
+                        img = data[1];
+                    } else {
+                        img = data[0];
+                        new Thread(new UploadImage(img, userDetails.getUsername(), apartmentId)).start();
+                        break;
+                    }
+
+                    new Thread(new UploadImage(img, userDetails.getUsername(), apartmentId)).start();
+                }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        };
 
+        new Thread(myRunnable).start();
         sessionStatus.setComplete();
-
         return "redirect:/";
     }
 
+    class UploadImage implements Runnable {
+        private String imgBase64;
+        private String userEmail;
+        private int apartmentId;
 
+        UploadImage(String imgBase64, String userEmail, int apartmentId) {
+            this.imgBase64 = imgBase64;
+            this.userEmail = userEmail;
+            this.apartmentId = apartmentId;
+        }
 
-    @GetMapping("/test")
-    public String test(ApartmentInfoForm apartmentInfoForm, ApartmentLocationForm apartmentLocationForm) {
-        //System.out.println(apartmentInfoForm.getPrice().setScale(2, BigDecimal.ROUND_HALF_DOWN) + " PRICE");
-        //System.out.println("SIZE " + apartmentInfoForm.getSelectedComforts().size());
-        System.out.println(apartmentInfoForm.getMaxNumberOfGuests() + " TEST");
-        System.out.println("SIZE " + apartmentInfoForm.getSelectedComforts().size());
-        System.out.println("LOCATION " + apartmentLocationForm.getLocation());
-        return null;
+        public void run() {
+            byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(imgBase64);
+            InputStream inputStream = new ByteArrayInputStream(imageBytes);
+            String fileName = UUID.randomUUID().toString();
+            try {
+                String filePath = "/" + userEmail + "/" + fileName + ".jpg";
+                boolean isExceptionThrows;
+                do {
+                    isExceptionThrows = false;
+
+                    try {
+                        client.files().uploadBuilder(filePath).withMode(WriteMode.ADD).uploadAndFinish(inputStream);
+                    } catch (RateLimitException exception) {
+                        isExceptionThrows = true;
+                    } catch (RetryException exception) {
+                        isExceptionThrows = true;
+                    }
+                } while (isExceptionThrows);
+
+                SharedLinkMetadata slm = client.sharing().createSharedLinkWithSettings(filePath, SharedLinkSettings.newBuilder().withRequestedVisibility(RequestedVisibility.PUBLIC).build());
+                String url = slm.getUrl();
+                apartmentImageRepository.save(new ApartmentImage(filePath, getDlUriToDropBoxImage(url), new Apartment(apartmentId)));
+            } catch (DbxException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private String getDlUriToDropBoxImage(String oldUrl) {
+            return oldUrl.replace("www.dropbox.com", "dl.dropboxusercontent.com").replace("?dl=0", "");
+        }
     }
 }
+

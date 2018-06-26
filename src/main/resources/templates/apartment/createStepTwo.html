@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/layout">
 <head>
-    <title>Hello World!</title>
+
 </head>
 <body>
 <div layout:fragment="content">
@@ -31,6 +31,7 @@
             $.get("https://ipapi.co/json", function(response) {
                var latitude = response.latitude.toFixed(2);
                var longitude = response.longitude.toFixed(2);
+               var marker;
 
                 var myLatlng = new google.maps.LatLng(latitude, longitude);
                 var myOptions = {
@@ -48,6 +49,15 @@
                         if (status == google.maps.GeocoderStatus.OK) {
                             if (results[0]) {
                                 document.getElementById("location").value = results[0].formatted_address;
+
+                                if(marker) {
+                                    marker.setPosition(event.latLng);
+                                } else {
+                                    marker = new google.maps.Marker({
+                                        position: event.latLng,
+                                        map: map
+                                    });
+                                }
                             }
                         }
                     });

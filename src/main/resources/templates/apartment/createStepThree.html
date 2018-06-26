@@ -1,7 +1,85 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/layout">
 <head>
-    <title>Hello World!</title>
+    <style>
+        #gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-gap: 20px;
+            align-items: stretch;
+        }
+
+        #gallery div img {
+            border: 1px solid #ccc;
+            box-shadow: 2px 2px 6px 0px  rgba(0,0,0,0.3);
+            max-width: 100%;
+        }
+
+        .img_wrp {
+            display: inline-block;
+            position: relative;
+            width: 200px;
+            height: 200px;
+        }
+
+        .remove {
+            position: absolute;
+            top: 3px;
+            right: 10px;
+        }
+
+        /* The Modal (background) */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            padding-top: 100px; /* Location of the box */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgb(0,0,0); /* Fallback color */
+            background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+        }
+
+        /* Modal Content (Image) */
+        .modal-content {
+            margin: auto;
+            display: block;
+            width: 80%;
+            max-width: 700px;
+        }
+
+        /* Add Animation - Zoom in the Modal */
+        .modal-content, #caption {
+            animation-name: zoom;
+            animation-duration: 0.6s;
+        }
+
+        @keyframes zoom {
+            from {transform:scale(0)}
+            to {transform:scale(1)}
+        }
+
+        /* The Close Button */
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 <div layout:fragment="content">
@@ -10,16 +88,139 @@
           method="post">
         <div class="row justify-content-center">
             <div class="col-4 form-group">
-                <label for="images">Images</label>
-                <input class="form-control" type="file" name="images" multiple="multiple" id="images"/>
+                <div class="row justify-content-center">
+                    <h3><span id="imgSize"></span> MB</h3>
+                </div>
+                <p class="alert alert-danger mt-2" role="alert" id="imgMessage">Maximum size 20 MB. Please remove few
+                    images</p>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-4 form-group">
+                <label for="addImg" class="btn btn-primary btn-block btn-outlined">Add image</label>
+                <input type="file" id="addImg" accept="image/*" multiple="multiple" style="display: none"/>
                 <p class="alert alert-danger mt-2" role="alert" th:if="${#fields.hasErrors('images')}"
                    th:errors="*{images}"></p>
             </div>
         </div>
+        <div id="gallery">
+
+        </div>
         <div class="row justify-content-center">
-            <button class="btn btn-primary" type="submit">next</button>
+            <button class="btn btn-primary mt-2" type="submit" id="sendBtn">next</button>
         </div>
     </form>
+
+    <div id="myModal" class="modal">
+
+        <!-- The Close Button -->
+        <span class="close">&times;</span>
+
+        <!-- Modal Content (The Image) -->
+        <img class="modal-content" id="img01">
+    </div>
+    <script>
+        $(document).ready(function(){
+            var modal = document.getElementById('myModal');
+            var modalImg = document.getElementById("img01");
+
+            var span = document.getElementsByClassName("close")[0];
+
+            span.onclick = function() {
+                modal.style.display = "none";
+            }
+
+            var sendBtn = document.getElementById('sendBtn');
+            var maxSize = 20;
+            var gallery = document.getElementById('gallery');
+            var imgSizeSpan = document.getElementById('imgSize');
+            imgSizeSpan.innerText = 0;
+            imgSizeSpan.style.color = 'green';
+            var imgSize;
+            var imgMessage = document.getElementById('imgMessage');
+            imgMessage.style.display = 'none';
+
+            function readURL(input) {
+                if (input.files.length != 0) {
+                    for (var i = 0; i < input.files.length; i++) {
+                        var reader = new FileReader();
+
+                        reader.onload = function (e) {
+                            var img = document.createElement("img");
+
+                            img.addEventListener('click', function () {
+                                modal.style.display = "block";
+                                modalImg.src = this.src;
+                            });
+
+                            img.height = 200;
+                            img.width = 200;
+                            img.src = e.target.result;
+                            img.style = 'cursor: pointer';
+                            img.setAttribute('img-size', imgSize.toString());
+
+                            var input = document.createElement("textarea");
+                            input.name = "images";
+                            input.style = "display: none";
+                            input.textContent = e.target.result;
+
+                            var div = document.createElement('div');
+                            div.classList.add('img_wrp');
+
+                            var closeImage = document.createElement("img");
+                            closeImage.classList.add('remove');
+                            closeImage.src = 'http://wecision.com/enterprise/images/icons/closeIcon.png';
+
+                            closeImage.addEventListener('click', function () {
+                                var img = this.parentNode.children[0];
+                                var removedImgSize = parseInt(img.getAttribute('img-size'));
+                                downSize(removedImgSize);
+                                this.parentNode.parentNode.removeChild(this.parentNode);
+                            });
+
+                            div.appendChild(img);
+                            div.appendChild(closeImage);
+                            div.appendChild(input);
+                            gallery.appendChild(div);
+                        }
+
+                        upSize(input.files[i].size);
+                        reader.readAsDataURL(input.files[i]);
+                    }
+                }
+            }
+
+            var size = 0;
+
+            function upSize(bytes) {
+                imgSize = Math.ceil(bytes / 1024);
+                size += imgSize;
+                imgSizeSpan.innerText = (size / 1024).toFixed(1);
+
+                if((size / 1024) > maxSize) {
+                    imgSizeSpan.style.color = 'red';
+                    imgMessage.style.display = 'block';
+                    sendBtn.disabled = true;
+                }
+            }
+
+            function downSize(removedImgSize) {
+                size -= removedImgSize;
+                imgSizeSpan.innerText = (size / 1024).toFixed(1);
+
+                if((size / 1024) < maxSize) {
+                    imgSizeSpan.style.color = 'green';
+                    imgMessage.style.display = 'none';
+                    sendBtn.disabled = false;
+                }
+            }
+
+            document.getElementById("addImg").addEventListener('change', function () {
+                readURL(this);
+                this.value = '';
+            });
+        })
+    </script>
 </div>
 </body>
 </html>

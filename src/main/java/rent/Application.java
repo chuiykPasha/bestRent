@@ -1,17 +1,23 @@
 package rent;
 
+import org.hibernate.Hibernate;
 import org.hibernate.annotations.NaturalId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
+import rent.entities.Apartment;
+import rent.entities.ApartmentImage;
 import rent.entities.Role;
 import rent.entities.User;
+import rent.repository.ApartmentRepository;
 import rent.repository.UserRepository;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @SpringBootApplication
@@ -21,7 +27,6 @@ public class Application implements CommandLineRunner {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
