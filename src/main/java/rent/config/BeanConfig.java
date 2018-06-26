@@ -1,5 +1,6 @@
 package rent.config;
 
+import nz.net.ultraq.thymeleaf.LayoutDialect;
 import org.apache.catalina.Context;
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.AbstractHttp11Protocol;
@@ -12,11 +13,22 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.thymeleaf.extras.springsecurity4.dialect.SpringSecurityDialect;
 
 @Configuration
 public class BeanConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(8);
+    }
+
+    @Bean
+    LayoutDialect layoutDialect() {
+        return new LayoutDialect();
+    }
+
+    @Bean
+    public SpringSecurityDialect securityDialect() {
+        return new SpringSecurityDialect();
     }
 }
