@@ -37,6 +37,15 @@
             </div>
             <div class="col-12">
                 <div class="form-group">
+                    <label for="title">Title</label>
+                    <textarea th:value="${apartmentInfoForm.title}" th:field="*{title}" class="form-control" id="title" rows="1"></textarea>
+                    <p class="alert alert-danger mt-2" role="alert"
+                       th:if="${#fields.hasErrors('title')}"
+                       th:errors="*{title}"></p>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="form-group">
                     <label for="description">Description</label>
                     <textarea th:value="${apartmentInfoForm.description}" th:field="*{description}" class="form-control" id="description" rows="3"></textarea>
                     <p class="alert alert-danger mt-2" role="alert"

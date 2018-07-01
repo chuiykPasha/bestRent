@@ -14,13 +14,17 @@ public class ApartmentComfort implements Serializable {
     @Column(nullable = false)
     private String name;
 
-    @ManyToMany(mappedBy = "apartmentComforts")
-    private Set<Apartment> apartments = new HashSet<>();
+    @ManyToMany(mappedBy = "apartmentComforts", fetch = FetchType.LAZY)
+    private Set<Apartment> apartments;
 
     public ApartmentComfort() {}
 
     public ApartmentComfort(String name) {
         this.name = name;
+    }
+
+    public ApartmentComfort(int id) {
+        this.id = id;
     }
 
     public ApartmentComfort(Integer id, String name) {
@@ -42,5 +46,13 @@ public class ApartmentComfort implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Set<Apartment> getApartments() {
+        return apartments;
+    }
+
+    public void setApartments(Set<Apartment> apartments) {
+        this.apartments = apartments;
     }
 }

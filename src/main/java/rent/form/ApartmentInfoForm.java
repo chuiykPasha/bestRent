@@ -1,5 +1,6 @@
 package rent.form;
 
+import org.hibernate.validator.constraints.Length;
 import rent.entities.ApartmentComfort;
 import rent.entities.AvailableToGuest;
 import rent.entities.TypeOfHouse;
@@ -22,6 +23,8 @@ public class ApartmentInfoForm implements Serializable{
     private Integer typeOfHouseId;
     private Integer availableToGuestId;
     private List<Integer> selectedComforts;
+    @Length(min = 10, max = 100)
+    private String title;
 
     private List<TypeOfHouse> typeOfHouses;
     private List<AvailableToGuest> availableToGuests;
@@ -105,5 +108,13 @@ public class ApartmentInfoForm implements Serializable{
 
     public void setComforts(List<ApartmentComfort> comforts) {
         this.comforts = comforts;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 }

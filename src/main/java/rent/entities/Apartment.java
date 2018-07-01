@@ -1,10 +1,17 @@
 package rent.entities;
 
+import org.hibernate.search.annotations.Analyze;
+import org.hibernate.search.annotations.Field;
+import org.hibernate.search.annotations.Index;
+import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.Store;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
+@Indexed
 @Entity
 @Table(name = "Apartment")
 public class Apartment implements Serializable {
@@ -13,12 +20,14 @@ public class Apartment implements Serializable {
     private Integer id;
     @Column(nullable = false)
     private String description;
-    @Column(nullable = false)
+    @Field(index = Index.YES, analyze= Analyze.YES, store= Store.NO)
     private String location;
     @Column
     private float price;
     @Column
     private int maxNumberOfGuests;
+    @Column(length = 100)
+    private String title;
 
     @ManyToOne
     @JoinColumn(name = "typeOfHouseId", nullable = false)
@@ -34,7 +43,7 @@ public class Apartment implements Serializable {
     @OneToMany(mappedBy = "apartment")
     private Set<ApartmentCalendar> calendars = new HashSet<>();
 
-    @ManyToMany(cascade = {CascadeType.ALL})
+    @ManyToMany
     @JoinTable(
             name = "Apartment_ApartmentComfort",
             joinColumns = {@JoinColumn(name = "apartmentId")},
@@ -48,13 +57,15 @@ public class Apartment implements Serializable {
         this.id = id;
     }
 
-    public Apartment(String description, String location, float price, int maxNumberOfGuests, TypeOfHouse typeOfHouse, AvailableToGuest availableToGuest) {
+    public Apartment(String description, String location, float price, int maxNumberOfGuests, TypeOfHouse typeOfHouse, AvailableToGuest availableToGuest, Set<ApartmentComfort> apartmentComforts, String title) {
         this.description = description;
         this.location = location;
         this.price = price;
         this.maxNumberOfGuests = maxNumberOfGuests;
         this.typeOfHouse = typeOfHouse;
         this.availableToGuest = availableToGuest;
+        this.apartmentComforts = apartmentComforts;
+        this.title = title;
     }
 
     public Integer getId() {
@@ -135,5 +146,13 @@ public class Apartment implements Serializable {
 
     public void setApartmentComforts(Set<ApartmentComfort> apartmentComforts) {
         this.apartmentComforts = apartmentComforts;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 }

@@ -10,6 +10,7 @@ import rent.entities.AvailableToGuest;
 import rent.form.AvailableToGuestForm;
 import rent.repository.AvailableToGuestRepository;
 import javax.validation.Valid;
+import java.util.List;
 
 @Controller
 @RequestMapping("/admin")

@@ -1,7 +1,13 @@
 package rent.entities;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
+
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -13,7 +19,7 @@ public class AvailableToGuest implements Serializable {
     @Column(nullable = false)
     private String name;
 
-    @OneToMany(mappedBy = "availableToGuest")
+    @OneToMany(mappedBy = "availableToGuest", fetch = FetchType.LAZY)
     private Set<Apartment> apartments;
 
     public AvailableToGuest() {}

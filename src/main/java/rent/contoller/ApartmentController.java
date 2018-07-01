@@ -13,24 +13,19 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.SessionAttributes;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
-import rent.entities.Apartment;
-import rent.entities.ApartmentImage;
-import rent.entities.AvailableToGuest;
-import rent.entities.TypeOfHouse;
+import rent.entities.*;
 import rent.form.ApartmentImagesForm;
 import rent.form.ApartmentInfoForm;
 import rent.form.ApartmentLocationForm;
 import rent.repository.*;
+import rent.service.FullTextSearchService;
+
 import javax.validation.Valid;
 import java.io.*;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Controller
@@ -49,6 +44,8 @@ public class ApartmentController {
     private List<ApartmentImage> images = new CopyOnWriteArrayList<>();
     @Autowired
     private ApartmentImageRepository apartmentImageRepository;
+    @Autowired
+    private FullTextSearchService fullTextSearchService;
 
     private ApartmentController() {
         DbxRequestConfig config = DbxRequestConfig.newBuilder("RentImages")
@@ -57,8 +54,15 @@ public class ApartmentController {
         client = new DbxClientV2(config, token);
     }
 
-    @GetMapping("/")
-    public String main() {
+    @RequestMapping(value = {"/"}, method = RequestMethod.GET)
+    public String main(@RequestParam(name = "location", required = false) String location, Model model) {
+        if(location != null && location != "") {
+            model.addAttribute("location", location);
+            model.addAttribute("apartments", fullTextSearchService.searchApartmentByLocation(location));
+        } else {
+            model.addAttribute("apartments", apartmentRepository.findAll());
+        }
+
         return "index";
     }
 
@@ -112,11 +116,17 @@ public class ApartmentController {
         }
 
         final UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Set<ApartmentComfort> selectedComforts = new HashSet<>();
+
+        for(int selected : apartmentInfoForm.getSelectedComforts()) {
+            selectedComforts.add(new ApartmentComfort(selected));
+        }
 
         Apartment apartment = new Apartment(apartmentInfoForm.getDescription(), apartmentLocationForm.getLocation(), apartmentInfoForm.getPrice().floatValue(),
                 apartmentInfoForm.getMaxNumberOfGuests(),
                 new TypeOfHouse(apartmentInfoForm.getTypeOfHouseId(), null),
-                new AvailableToGuest(apartmentInfoForm.getAvailableToGuestId(), null));
+                new AvailableToGuest(apartmentInfoForm.getAvailableToGuestId(), null), selectedComforts, apartmentInfoForm.getTitle());
+
         final int apartmentId = apartmentRepository.save(apartment).getId();
 
         Runnable myRunnable = new Runnable() {
@@ -129,7 +139,7 @@ public class ApartmentController {
                     if(data.length == 2) {
                         img = data[1];
                     } else {
-                        img = data[0];
+                        img = apartmentImagesForm.getImages().get(1);
                         new Thread(new UploadImage(img, userDetails.getUsername(), apartmentId)).start();
                         break;
                     }
