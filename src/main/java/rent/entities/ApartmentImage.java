@@ -1,5 +1,7 @@
 package rent.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.io.Serializable;
 
@@ -15,6 +17,7 @@ public class ApartmentImage implements Serializable {
     @Column(nullable = false)
     private String linkPhoto;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "apartmentId", nullable = false)
     private Apartment apartment;

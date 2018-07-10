@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="layout/layout" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title th:text="${apartment.getTitle()}"></title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/hotel-datepicker.css}">
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="row">
+        <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+            <ol class="carousel-indicators">
+                <th:block th:if="${apartment.getImages().size() > 1}"
+                          th:each="apartmentImage, index : ${apartment.getImages()}">
+                    <li th:classappend="${index.index == 0 ? 'active' : ''}" data-target="#carouselExampleIndicators"
+                        th:attr="data-slide-to=${index.index}"></li>
+                </th:block>
+            </ol>
+
+            <div class="carousel-inner">
+                <div th:each="apartmentImage, index : ${apartment.getImages()}"
+                     th:classappend="${index.index == 0 ? 'active' : ''}" class="carousel-item">
+                    <img class="d-block w-100"
+                         th:src="${apartmentImage.getLinkPhoto()}">
+                </div>
+            </div>
+            <th:block th:if="${apartment.getImages().size() > 1}">
+                <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button"
+                   data-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Previous</span>
+                </a>
+                <a class="carousel-control-next" href="#carouselExampleIndicators" role="button"
+                   data-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Next</span>
+                </a>
+            </th:block>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-8">
+                <h4 th:text="${apartment.getAvailableToGuest().getName()}"></h4>
+                <h3 th:text="${apartment.getTitle()}"></h3>
+                <h5 th:text="'Max number of guests ' + ${apartment.getMaxNumberOfGuests()}"></h5>
+                <p th:text="${apartment.getDescription()}"></p>
+            <div class="row justify-content-center">
+                <div class="col-4">
+                    <h6 class="text-center">Comforts</h6>
+                    <ul class="list-group list-group-flush" th:each="comfort : ${apartment.getApartmentComforts()}">
+                        <li class="list-group-item" th:text="${comfort.getName()}"></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <h6 th:text="${#numbers.formatInteger(apartment.getPrice(), 0) + ' per day'}"></h6>
+            <form>
+                <input id="setDate" type="text" value="Set date" style="width: 185px" />
+            </form>
+        </div>
+    </div>
+    <script type="text/javascript" th:src="@{/js/fecha.min.js}"></script>
+    <script type="text/javascript" th:src="@{/js/hotel-datepicker.js}"></script>
+    <script>
+        $(document).ready(function(){
+
+            $('.carousel').carousel({
+                interval: false
+            })
+
+            $.ajax({
+                type : "GET",
+                url : "/apartment-get-reservation-dates/1",
+                success: function(result){
+                    console.log(result);
+
+                },
+                error : function(e) {
+                    console.log('ERROR ' + e);
+                }
+            });
+
+
+
+            var input = document.getElementById('setDate');
+            var datepicker = new HotelDatepicker(input);
+
+        })
+    </script>
+</div>
+</body>
+</html>

@@ -9,7 +9,7 @@
 <body>
 <div layout:fragment="content">
         <div th:if="${apartments != null && !apartments.isEmpty()}" class="row mt-5">
-            <div th:each="apartment : ${apartments}" class="col-md-4">
+            <div th:each="apartment : ${apartments}" class="col-md-3">
                 <div th:id="'carousel' + ${apartment.getId()}" class="carousel slide" data-ride="carousel">
                     <ol class="carousel-indicators" th:if="${apartment.getImages().size() > 1}">
                         <th:block th:each="apartmentImage, index : ${apartment.getImages()}">
@@ -20,7 +20,7 @@
                     <div class="carousel-inner">
                         <th:block th:each="apartmentImage, index : ${apartment.getImages()}">
                             <div class="carousel-item" th:classappend="${index.index == 0 ? 'active' : ''}">
-                                <img class="d-block w-100" style="min-height: 250px; max-height: 250px" th:src="${apartmentImage.getLinkPhoto()}" alt="First slide">
+                                <a th:href="@{'/apartment/' + ${apartment.getId()}}"><img class="d-block w-100" style="min-height: 250px; max-height: 250px" th:src="${apartmentImage.getLinkPhoto()}" alt="First slide"></a>
                             </div>
                         </th:block>
                     </div>
@@ -42,6 +42,36 @@
 
             <hr>
         </div>
+    <div th:if="${countPage > 1}" class="row justify-content-center">
+        <nav aria-label="...">
+            <ul class="pagination">
+                <li th:if="${current != 0}" class="page-item">
+                    <a class="page-link" th:href="@{'/?page=' + ${current}}" tabindex="-1">Previous</a>
+                </li>
+                <th:block th:each="page : ${#numbers.sequence(0, countPage - 1)}">
+                    <li th:if="${page != current && location == null}" class="page-item"><a class="page-link"
+                                                                        th:href="@{'/?page=' + ${page + 1}}"
+                                                                                               th:text="${page + 1}"></a></li>
+                    <li th:if="${page != current && location != null}" class="page-item"><a class="page-link"
+                                                                                            th:href="@{'/?page=' + ${page + 1} + '&location=' + ${location}}"
+                                                                                            th:text="${page + 1}"></a></li>
+                    <li th:if="${page  == current}" class="page-item active"><span class="page-link"
+                                                                                   th:text="${page + 1}"><span
+                            class="sr-only">(current)</span></span></li>
+                </th:block>
+                <li th:if="${current + 1 != countPage}" class="page-item">
+                    <a class="page-link" th:href="@{'/?page=' + ${current + 2}}">Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+<script>
+    $(document).ready(function(){
+        $('.carousel').carousel({
+            interval: false
+        })
+    })
+</script>
 </div>
 </body>
 </html>

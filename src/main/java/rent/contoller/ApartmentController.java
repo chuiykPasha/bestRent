@@ -8,6 +8,11 @@ import com.dropbox.core.v2.sharing.RequestedVisibility;
 import com.dropbox.core.v2.sharing.SharedLinkMetadata;
 import com.dropbox.core.v2.sharing.SharedLinkSettings;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -21,10 +26,10 @@ import rent.form.ApartmentImagesForm;
 import rent.form.ApartmentInfoForm;
 import rent.form.ApartmentLocationForm;
 import rent.repository.*;
-import rent.service.FullTextSearchService;
 
 import javax.validation.Valid;
 import java.io.*;
+import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -44,8 +49,7 @@ public class ApartmentController {
     private List<ApartmentImage> images = new CopyOnWriteArrayList<>();
     @Autowired
     private ApartmentImageRepository apartmentImageRepository;
-    @Autowired
-    private FullTextSearchService fullTextSearchService;
+    private final int sizeApartmentsInPage = 9;
 
     private ApartmentController() {
         DbxRequestConfig config = DbxRequestConfig.newBuilder("RentImages")
@@ -55,15 +59,32 @@ public class ApartmentController {
     }
 
     @RequestMapping(value = {"/"}, method = RequestMethod.GET)
-    public String main(@RequestParam(name = "location", required = false) String location, Model model) {
+    public String main(@RequestParam(name = "location", required = false) String location, @RequestParam(name = "page", required = false) Integer page, Model model) {
+        int pageNumber = page != null ? page - 1 : 0;
+
         if(location != null && location != "") {
+            int countPage = (int)Math.ceil(apartmentRepository.countPageByLocation(location) / (double)sizeApartmentsInPage);
             model.addAttribute("location", location);
-            model.addAttribute("apartments", fullTextSearchService.searchApartmentByLocation(location));
+            model.addAttribute("apartments", apartmentRepository.getApartmentsByLocation(location, pageNumber * sizeApartmentsInPage, sizeApartmentsInPage));
+            model.addAttribute("countPage", countPage);
+            model.addAttribute("current", pageNumber);
         } else {
-            model.addAttribute("apartments", apartmentRepository.findAll());
+            int countPage = (int)Math.ceil(apartmentRepository.count() / (double)sizeApartmentsInPage);
+            Page<Apartment> apartments = apartmentRepository.findAll(PageRequest.of(pageNumber, sizeApartmentsInPage, Sort.Direction.DESC, "id"));
+            model.addAttribute("apartments", apartments.getContent());
+            model.addAttribute("countPage", countPage);
+            model.addAttribute("current", pageNumber);
+            model.addAttribute("location", null);
         }
 
         return "index";
+    }
+
+    @GetMapping("/apartment/{apartment}")
+    public String showApartmentById(Apartment apartment, Model model) {
+        model.addAttribute("apartment", apartment);
+
+        return "/apartment/showApartment";
     }
 
     @GetMapping("/apartment-create-step-one")
@@ -110,7 +131,8 @@ public class ApartmentController {
                                              BindingResult result,
                                              ApartmentInfoForm apartmentInfoForm,
                                              ApartmentLocationForm apartmentLocationForm,
-                                             SessionStatus sessionStatus) throws MaxUploadSizeExceededException {
+                                             SessionStatus sessionStatus,
+                                             @AuthenticationPrincipal User user) throws MaxUploadSizeExceededException {
         if(result.hasErrors()) {
             return "/apartment/createStepThree";
         }
@@ -125,7 +147,7 @@ public class ApartmentController {
         Apartment apartment = new Apartment(apartmentInfoForm.getDescription(), apartmentLocationForm.getLocation(), apartmentInfoForm.getPrice().floatValue(),
                 apartmentInfoForm.getMaxNumberOfGuests(),
                 new TypeOfHouse(apartmentInfoForm.getTypeOfHouseId(), null),
-                new AvailableToGuest(apartmentInfoForm.getAvailableToGuestId(), null), selectedComforts, apartmentInfoForm.getTitle());
+                new AvailableToGuest(apartmentInfoForm.getAvailableToGuestId(), null), selectedComforts, apartmentInfoForm.getTitle(), user);
 
         final int apartmentId = apartmentRepository.save(apartment).getId();
 
@@ -153,6 +175,7 @@ public class ApartmentController {
         sessionStatus.setComplete();
         return "redirect:/";
     }
+
 
     class UploadImage implements Runnable {
         private String imgBase64;

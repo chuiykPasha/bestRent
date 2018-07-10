@@ -13,7 +13,7 @@ public class TypeOfHouse implements Serializable {
     private Integer id;
     @Column(nullable = false)
     private String name;
-    @OneToMany(mappedBy = "typeOfHouse")
+    @OneToMany(mappedBy = "typeOfHouse", fetch = FetchType.LAZY)
     private Set<Apartment> apartments = new HashSet<>();
 
     public TypeOfHouse() {}
