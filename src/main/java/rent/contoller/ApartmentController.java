@@ -83,7 +83,6 @@ public class ApartmentController {
     @GetMapping("/apartment/{apartment}")
     public String showApartmentById(Apartment apartment, Model model) {
         model.addAttribute("apartment", apartment);
-
         return "/apartment/showApartment";
     }
 
@@ -176,6 +175,13 @@ public class ApartmentController {
         return "redirect:/";
     }
 
+
+    @RequestMapping(value = "/apartment-booking", method = RequestMethod.POST, produces = "text/plain")
+    public @ResponseBody String apartmentBooking(@RequestParam String bookingDates) {
+        //Map<String, String> tests = new HashMap<>();
+        //tests.put("message", "ok");
+        return "hellow preacher";
+    }
 
     class UploadImage implements Runnable {
         private String imgBase64;

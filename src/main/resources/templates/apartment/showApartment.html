@@ -55,37 +55,47 @@
         </div>
         <div class="col-4">
             <h6 th:text="${#numbers.formatInteger(apartment.getPrice(), 0) + ' per day'}"></h6>
-            <form>
-                <input id="setDate" type="text" value="Set date" style="width: 185px" />
-            </form>
+            <div>
+                <input id="setDate" class="form-control" type="text" value="Set date" readonly />
+                <input id="csrf"
+                        type="hidden"
+                        th:name="${_csrf.parameterName}"
+                        th:value="${_csrf.token}" />
+                <p class="alert alert-danger mt-2" role="alert">Test</p>
+                <button id="reservation">Reservation</button>
+            </div>
         </div>
     </div>
     <script type="text/javascript" th:src="@{/js/fecha.min.js}"></script>
     <script type="text/javascript" th:src="@{/js/hotel-datepicker.js}"></script>
-    <script>
+    <script th:inline="javascript">
         $(document).ready(function(){
+            var test = /*[[${test}]]*/ "default";
+            console.log(test);
+
+            var input = document.getElementById('setDate');
+            var datepicker = new HotelDatepicker(input);
 
             $('.carousel').carousel({
                 interval: false
             })
 
-            $.ajax({
-                type : "GET",
-                url : "/apartment-get-reservation-dates/1",
-                success: function(result){
-                    console.log(result);
+            var reservationBtn = document.getElementById("reservation");
 
-                },
-                error : function(e) {
-                    console.log('ERROR ' + e);
-                }
+            reservationBtn.addEventListener('click', function () {
+                var date = input.value;
+
+                $.ajax({
+                    url : '/apartment-booking',
+                    headers: {"X-CSRF-TOKEN": $("input[name='_csrf']").val()},
+                    data: {bookingDates : date},
+                    type : 'POST',
+                    success : function(result) {
+                        console.log("I am here");
+                        console.log(result);
+                    }
+                })
             });
-
-
-
-            var input = document.getElementById('setDate');
-            var datepicker = new HotelDatepicker(input);
-
         })
     </script>
 </div>

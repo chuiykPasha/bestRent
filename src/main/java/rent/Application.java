@@ -6,23 +6,31 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-import rent.entities.Apartment;
-import rent.entities.ApartmentImage;
-import rent.entities.Role;
-import rent.entities.User;
+import rent.entities.*;
+import rent.repository.ApartmentCalendarRepository;
 import rent.repository.ApartmentRepository;
 import rent.repository.UserRepository;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @SpringBootApplication
-public class Application implements CommandLineRunner {
-    @Autowired
+public class Application extends SpringBootServletInitializer {
+    public static void main(String[] args) {
+        SpringApplication sa = new SpringApplication(Application.class);
+        sa.run(args);
+    }
+
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return application.sources(Application.class);
+    }
+    /*@Autowired
     private UserRepository userRepository;
 
     @Autowired
@@ -46,5 +54,5 @@ public class Application implements CommandLineRunner {
                     roles);
             userRepository.save(user);
         }
-    }
+    }*/
 }
