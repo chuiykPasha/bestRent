@@ -8,6 +8,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import rent.entities.*;
@@ -20,15 +21,9 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 @SpringBootApplication
-public class Application extends SpringBootServletInitializer {
+public class Application {
     public static void main(String[] args) {
-        SpringApplication sa = new SpringApplication(Application.class);
-        sa.run(args);
-    }
-
-    @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        return application.sources(Application.class);
+        SpringApplication.run(Application.class, args);
     }
     /*@Autowired
     private UserRepository userRepository;

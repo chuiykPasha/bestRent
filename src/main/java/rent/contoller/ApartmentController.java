@@ -30,8 +30,13 @@ import rent.repository.*;
 import javax.validation.Valid;
 import java.io.*;
 import java.security.Principal;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Controller
 @SessionAttributes(types = {ApartmentInfoForm.class, ApartmentLocationForm.class})
@@ -49,7 +54,10 @@ public class ApartmentController {
     private List<ApartmentImage> images = new CopyOnWriteArrayList<>();
     @Autowired
     private ApartmentImageRepository apartmentImageRepository;
+    @Autowired
+    private ApartmentCalendarRepository apartmentCalendarRepository;
     private final int sizeApartmentsInPage = 9;
+    private boolean firstImageUploaded = false;
 
     private ApartmentController() {
         DbxRequestConfig config = DbxRequestConfig.newBuilder("RentImages")
@@ -83,6 +91,16 @@ public class ApartmentController {
     @GetMapping("/apartment/{apartment}")
     public String showApartmentById(Apartment apartment, Model model) {
         model.addAttribute("apartment", apartment);
+        model.addAttribute("apartmentId", apartment.getId());
+
+        List<LocalDate> dates = new ArrayList<>();
+
+        for(ApartmentCalendar calendar : apartment.getCalendars()) {
+            dates.addAll(getDatesBetween(calendar.getArrival().toLocalDate(), calendar.getDeparture().toLocalDate()));
+            dates.add(calendar.getDeparture().toLocalDate());
+        }
+
+        model.addAttribute("disabledDates", dates);
         return "/apartment/showApartment";
     }
 
@@ -150,37 +168,59 @@ public class ApartmentController {
 
         final int apartmentId = apartmentRepository.save(apartment).getId();
 
-        Runnable myRunnable = new Runnable() {
+        for (int i = 0; i < apartmentImagesForm.getImages().size(); i++) {
+            String[] data = apartmentImagesForm.getImages().get(i).split(",");
+            String img;
 
-            public void run() {
-                for (int i = 0; i < apartmentImagesForm.getImages().size(); i++) {
-                    String [] data = apartmentImagesForm.getImages().get(i).split(",");
-                    String img;
-
-                    if(data.length == 2) {
-                        img = data[1];
-                    } else {
-                        img = apartmentImagesForm.getImages().get(1);
-                        new Thread(new UploadImage(img, userDetails.getUsername(), apartmentId)).start();
-                        break;
-                    }
-
-                    new Thread(new UploadImage(img, userDetails.getUsername(), apartmentId)).start();
-                }
+            if (data.length == 2) {
+                img = data[1];
+            } else {
+                img = apartmentImagesForm.getImages().get(1);
+                new Thread(new UploadImage(img, userDetails.getUsername(), apartmentId)).start();
+                break;
             }
-        };
 
-        new Thread(myRunnable).start();
+            new Thread(new UploadImage(img, userDetails.getUsername(), apartmentId)).start();
+        }
+
         sessionStatus.setComplete();
+
+        while (true) {
+            if(firstImageUploaded == true) {
+                break;
+            }
+        }
+
         return "redirect:/";
     }
 
 
     @RequestMapping(value = "/apartment-booking", method = RequestMethod.POST, produces = "text/plain")
-    public @ResponseBody String apartmentBooking(@RequestParam String bookingDates) {
-        //Map<String, String> tests = new HashMap<>();
-        //tests.put("message", "ok");
-        return "hellow preacher";
+    public @ResponseBody String apartmentBooking(@RequestParam String bookingDates, @RequestParam int apartmentId) {
+        String [] dates = bookingDates.split(" - ");
+
+        for(String s : dates) {
+            System.out.println(s);
+        }
+
+        if(bookingDates == null) {
+            return "try again";
+        }
+
+        ApartmentCalendar apartmentCalendar = new ApartmentCalendar(Date.valueOf(dates[0]), Date.valueOf(dates[1]), new Apartment(apartmentId));
+        apartmentCalendarRepository.save(apartmentCalendar);
+        System.out.println(bookingDates);
+        System.out.println(apartmentId);
+        return "ok";
+    }
+
+    private List<LocalDate> getDatesBetween(LocalDate startDate, LocalDate endDate) {
+
+        long numOfDaysBetween = ChronoUnit.DAYS.between(startDate, endDate);
+        return IntStream.iterate(0, i -> i + 1)
+                .limit(numOfDaysBetween)
+                .mapToObj(i -> startDate.plusDays(i))
+                .collect(Collectors.toList());
     }
 
     class UploadImage implements Runnable {
@@ -216,6 +256,7 @@ public class ApartmentController {
                 SharedLinkMetadata slm = client.sharing().createSharedLinkWithSettings(filePath, SharedLinkSettings.newBuilder().withRequestedVisibility(RequestedVisibility.PUBLIC).build());
                 String url = slm.getUrl();
                 apartmentImageRepository.save(new ApartmentImage(filePath, getDlUriToDropBoxImage(url), new Apartment(apartmentId)));
+                firstImageUploaded = true;
             } catch (DbxException e) {
                 e.printStackTrace();
             } catch (IOException e) {

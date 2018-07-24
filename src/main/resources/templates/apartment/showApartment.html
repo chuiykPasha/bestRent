@@ -70,11 +70,13 @@
     <script type="text/javascript" th:src="@{/js/hotel-datepicker.js}"></script>
     <script th:inline="javascript">
         $(document).ready(function(){
-            var test = /*[[${test}]]*/ "default";
-            console.log(test);
+            var dates = /*[[${disabledDates}]]*/ "default";
+            var apartmentId = /*[[${apartmentId}]]*/ "default";
 
             var input = document.getElementById('setDate');
-            var datepicker = new HotelDatepicker(input);
+            var datepicker = new HotelDatepicker(input, {
+                disabledDates: dates
+            });
 
             $('.carousel').carousel({
                 interval: false
@@ -88,7 +90,7 @@
                 $.ajax({
                     url : '/apartment-booking',
                     headers: {"X-CSRF-TOKEN": $("input[name='_csrf']").val()},
-                    data: {bookingDates : date},
+                    data: {bookingDates : date, apartmentId : apartmentId},
                     type : 'POST',
                     success : function(result) {
                         console.log("I am here");
