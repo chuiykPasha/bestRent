@@ -75,7 +75,8 @@
 
             var input = document.getElementById('setDate');
             var datepicker = new HotelDatepicker(input, {
-                disabledDates: dates
+                disabledDates: dates,
+                enableCheckout: true,
             });
 
             $('.carousel').carousel({

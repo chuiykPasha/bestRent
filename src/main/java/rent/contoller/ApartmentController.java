@@ -197,17 +197,24 @@ public class ApartmentController {
 
     @RequestMapping(value = "/apartment-booking", method = RequestMethod.POST, produces = "text/plain")
     public @ResponseBody String apartmentBooking(@RequestParam String bookingDates, @RequestParam int apartmentId) {
-        String [] dates = bookingDates.split(" - ");
-
-        for(String s : dates) {
-            System.out.println(s);
-        }
+        final int START_DATE = 0;
+        final int END_DATE = 1;
 
         if(bookingDates == null) {
             return "try again";
         }
 
-        ApartmentCalendar apartmentCalendar = new ApartmentCalendar(Date.valueOf(dates[0]), Date.valueOf(dates[1]), new Apartment(apartmentId));
+        String [] dates = bookingDates.split(" - ");
+
+        if(dates.length != 2) {
+            return "try again, wrong request";
+        }
+
+        for(String s : dates) {
+            System.out.println(s);
+        }
+
+        ApartmentCalendar apartmentCalendar = new ApartmentCalendar(Date.valueOf(dates[START_DATE]), Date.valueOf(dates[END_DATE]), new Apartment(apartmentId));
         apartmentCalendarRepository.save(apartmentCalendar);
         System.out.println(bookingDates);
         System.out.println(apartmentId);
