@@ -2,36 +2,20 @@ package rent.form;
 
 import rent.form.constraint.FieldMatch;
 
-import javax.validation.constraints.Email;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 
 @FieldMatch(first = "password", second = "confirmPassword", message = "The password fields must match")
-public class RegisterForm {
-    @Email
-    @NotEmpty
-    private String email;
+public class PasswordResetForm {
     @NotEmpty
     @Size(min = 6, max = 16)
     private String password;
-
     @NotEmpty
     @Size(min = 6, max = 16)
     private String confirmPassword;
-
     @NotEmpty
-    private String name;
-    @NotEmpty
-    private String surName;
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    private String token;
 
     public String getPassword() {
         return password;
@@ -49,19 +33,11 @@ public class RegisterForm {
         this.confirmPassword = confirmPassword;
     }
 
-    public String getName() {
-        return name;
+    public String getToken() {
+        return token;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getSurName() {
-        return surName;
-    }
-
-    public void setSurName(String surName) {
-        this.surName = surName;
+    public void setToken(String token) {
+        this.token = token;
     }
 }
