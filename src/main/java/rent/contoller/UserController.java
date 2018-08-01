@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import rent.entities.Role;
 import rent.entities.User;
+import rent.form.ChangePasswordForm;
 import rent.form.ChangeProfileForm;
 import rent.form.RegisterForm;
 import rent.repository.UserRepository;
@@ -78,16 +79,27 @@ public class UserController {
         user.setName(form.getName());
         user.setSurName(form.getSurName());
         userRepository.save(user);
-        return "/userProfile/changeProfile";
+        return "/userProfile/index";
     }
 
     @GetMapping("/change-password")
-    public String changePassword(@AuthenticationPrincipal User user, Model model) {
+    public String changePassword(ChangePasswordForm changePasswordForm) {
         return "/userProfile/changePassword";
     }
 
     @PostMapping("/change-password")
-    public String changePasswordSave() {
-        return null;
+    public String changePasswordSave(@AuthenticationPrincipal User user, @Valid @ModelAttribute ChangePasswordForm form, BindingResult result) {
+        if(result.hasErrors()) {
+            return "/userProfile/changePassword";
+        }
+
+        if(!passwordEncoder.matches(form.getOldPassword(), user.getPassword())) {
+            result.rejectValue("oldPassword", null, "Old password wrong.");
+            return "/userProfile/changePassword";
+        }
+
+        user.setPassword(passwordEncoder.encode(form.getNewPassword()));
+        userRepository.save(user);
+        return "/userProfile/index";
     }
 }
