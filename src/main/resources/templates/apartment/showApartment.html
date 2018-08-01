@@ -38,8 +38,12 @@
             </th:block>
         </div>
     </div>
-    <div class="row mt-4">
-        <div class="col-8">
+    <div class="row mt-4" style="min-height: 500px; !important;">
+        <div class="col-7">
+            <div class="float-right">
+                <img th:src="${apartment.getUser().getAvatarUrl() == null} ? ${defaultAvatar} : ${apartment.getUser().getAvatarUrl()}">
+                <p th:text="${apartment.getUser().getSurName() + ' ' + apartment.getUser().getName()}"></p>
+            </div>
                 <h4 th:text="${apartment.getAvailableToGuest().getName()}"></h4>
                 <h3 th:text="${apartment.getTitle()}"></h3>
                 <h5 th:text="'Max number of guests ' + ${apartment.getMaxNumberOfGuests()}"></h5>
@@ -53,9 +57,9 @@
                 </div>
             </div>
         </div>
-        <div class="col-4">
+        <div class="col-5">
             <h6 th:text="${#numbers.formatInteger(apartment.getPrice(), 0) + ' per day'}"></h6>
-            <div>
+            <div class="">
                 <input id="setDate" class="form-control" type="text" value="Set date" readonly />
                 <input id="csrf"
                         type="hidden"

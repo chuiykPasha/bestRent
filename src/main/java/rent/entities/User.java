@@ -19,6 +19,8 @@ public class User implements UserDetails ,Serializable {
     private String name;
     private String surName;
     private String password;
+    private String avatarPath;
+    private String avatarUrl;
 
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "userRole", joinColumns = @JoinColumn(name = "userId"))
@@ -122,5 +124,21 @@ public class User implements UserDetails ,Serializable {
 
     public void setApartments(Set<Apartment> apartments) {
         this.apartments = apartments;
+    }
+
+    public String getAvatarPath() {
+        return avatarPath;
+    }
+
+    public void setAvatarPath(String avatarPath) {
+        this.avatarPath = avatarPath;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 }

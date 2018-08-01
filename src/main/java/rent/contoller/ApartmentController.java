@@ -42,6 +42,7 @@ import java.util.stream.IntStream;
 @SessionAttributes(types = {ApartmentInfoForm.class, ApartmentLocationForm.class})
 public class ApartmentController {
     private final String token = "5nsmQQ0lxRAAAAAAAAABIXytFyZh8DVGFd3VPIk9KO58T_ZlkoeOcIVxWrhgjH_T";
+    private final String DEFAULT_AVATAR = "https://www.dl.dropboxusercontent.com/s/5o7j3wapxg8w359/no_avatar.jpg";
     private DbxClientV2 client;
     @Autowired
     private TypeOfHouseRepository typeOfHouseRepository;
@@ -92,6 +93,7 @@ public class ApartmentController {
     public String showApartmentById(Apartment apartment, Model model) {
         model.addAttribute("apartment", apartment);
         model.addAttribute("apartmentId", apartment.getId());
+        model.addAttribute("defaultAvatar", DEFAULT_AVATAR);
 
         List<LocalDate> dates = new ArrayList<>();
 
