@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/userProfileLayout">
+<head>
+    <head>
+        <link rel="stylesheet" type="text/css" th:href="@{/css/cropper.css}">
+        <title>User profile</title>
+        <style>
+            .modal-dialog,
+            .modal-content {
+                /* 80% of window height */
+                height: 75%;
+            }
+
+            .modal-body {
+                /* 100% = dialog height, 120px = header + footer */
+                max-height: calc(100% - 120px);
+            }
+
+            .preview {
+                overflow: hidden;
+                width: 100px;
+                height: 100px;
+            }
+        </style>
+    </head>
+<body>
+<div layout:fragment="content">
+    <div class="row justify-content-center">
+        <img style="width: 240px; height: 240px;" th:src="${avatar}">
+    </div>
+
+
+    <div class="row justify-content-center mt-3">
+        <form id="form" th:action="@{/user-photo}" method="post" th:object="${addAvatarForm}">
+            <label class="btn btn-primary" for="loadImg">Add photo</label>
+            <input style="display: none;" id="loadImg" type="file">
+            <input type="hidden" id="ImageBase64" name="avatar">
+        </form>
+
+
+        <!-- Modal -->
+        <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLongTitle">Avatar</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div>
+                            <canvas style="width: 600px; min-width: 600px;" id="img"/>
+                        </div>
+                        <div class="preview mt-2" style="margin: auto;"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-primary" id="zoomPlus" style="margin:10px;">+</button>
+                        <button class="btn btn-primary" id="zoomMinus" style="margin:10px;">-</button>
+                        <button type="button" class="btn btn-primary" id="crop">Crop</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="uploadPhoto">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" th:src="@{/js/cropper.js}"></script>
+    <script type="text/javascript" th:src="@{/js/script.js}"></script>
+    <script>
+        window.onload = function () {
+            var form = document.getElementById('form');
+            var uploadPhotoBtn = document.getElementById('uploadPhoto');
+
+            uploadPhotoBtn.addEventListener('click', function () {
+                var $canvas = $("#img");
+                var croppedImage = $canvas.cropper('getCroppedCanvas', {width: 240, height: 240}).toDataURL('image/jpg');
+                $('#result').html($('<img>').attr('src', croppedImage));
+                console.log(croppedImage);
+                //Зображення обрізане записуємо у скрите поле на формі
+                $('#ImageBase64').attr("value", croppedImage);
+                form.submit();
+            })
+        }
+    </script>
+
+</div>
+</body>
+</html>

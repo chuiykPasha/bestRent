@@ -12,6 +12,9 @@ import java.util.Set;
 @Entity
 @Table(name = "user")
 public class User implements UserDetails ,Serializable {
+    @Transient
+    public static final String DEFAULT_AVATAR = "https://www.dl.dropboxusercontent.com/s/5o7j3wapxg8w359/no_avatar.jpg";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

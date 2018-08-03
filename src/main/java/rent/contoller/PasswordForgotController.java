@@ -59,7 +59,7 @@ public class PasswordForgotController {
         passwordResetTokenRepository.save(token);
 
         Mail mail = new Mail();
-        mail.setFrom("no-reply@memorynotfound.com");
+        mail.setFrom("best-rent.tk");
         mail.setTo(user.getEmail());
         mail.setSubject("Password reset request");
 
@@ -71,8 +71,6 @@ public class PasswordForgotController {
         model.put("resetUrl", url + "/reset-password?token=" + token.getToken());
         mail.setModel(model);
         emailService.sendEmail(mail);
-
-
 
         return "redirect:/forgot-password?success";
     }

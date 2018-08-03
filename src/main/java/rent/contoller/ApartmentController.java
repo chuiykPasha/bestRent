@@ -26,6 +26,7 @@ import rent.form.ApartmentImagesForm;
 import rent.form.ApartmentInfoForm;
 import rent.form.ApartmentLocationForm;
 import rent.repository.*;
+import rent.service.UploadImageService;
 
 import javax.validation.Valid;
 import java.io.*;
@@ -41,9 +42,6 @@ import java.util.stream.IntStream;
 @Controller
 @SessionAttributes(types = {ApartmentInfoForm.class, ApartmentLocationForm.class})
 public class ApartmentController {
-    private final String token = "5nsmQQ0lxRAAAAAAAAABIXytFyZh8DVGFd3VPIk9KO58T_ZlkoeOcIVxWrhgjH_T";
-    private final String DEFAULT_AVATAR = "https://www.dl.dropboxusercontent.com/s/5o7j3wapxg8w359/no_avatar.jpg";
-    private DbxClientV2 client;
     @Autowired
     private TypeOfHouseRepository typeOfHouseRepository;
     @Autowired
@@ -52,19 +50,13 @@ public class ApartmentController {
     private ApartmentComfortRepository apartmentComfortRepository;
     @Autowired
     private ApartmentRepository apartmentRepository;
-    private List<ApartmentImage> images = new CopyOnWriteArrayList<>();
-    @Autowired
-    private ApartmentImageRepository apartmentImageRepository;
     @Autowired
     private ApartmentCalendarRepository apartmentCalendarRepository;
     private final int sizeApartmentsInPage = 9;
-    private boolean firstImageUploaded = false;
+    @Autowired
+    private UploadImageService uploadImageService;
 
     private ApartmentController() {
-        DbxRequestConfig config = DbxRequestConfig.newBuilder("RentImages")
-                .withHttpRequestor(new OkHttp3Requestor(OkHttp3Requestor.defaultOkHttpClient()))
-                .build();
-        client = new DbxClientV2(config, token);
     }
 
     @RequestMapping(value = {"/"}, method = RequestMethod.GET)
@@ -93,7 +85,7 @@ public class ApartmentController {
     public String showApartmentById(Apartment apartment, Model model) {
         model.addAttribute("apartment", apartment);
         model.addAttribute("apartmentId", apartment.getId());
-        model.addAttribute("defaultAvatar", DEFAULT_AVATAR);
+        model.addAttribute("defaultAvatar", User.DEFAULT_AVATAR);
 
         List<LocalDate> dates = new ArrayList<>();
 
@@ -170,25 +162,11 @@ public class ApartmentController {
 
         final int apartmentId = apartmentRepository.save(apartment).getId();
 
-        for (int i = 0; i < apartmentImagesForm.getImages().size(); i++) {
-            String[] data = apartmentImagesForm.getImages().get(i).split(",");
-            String img;
-
-            if (data.length == 2) {
-                img = data[1];
-            } else {
-                img = apartmentImagesForm.getImages().get(1);
-                new Thread(new UploadImage(img, userDetails.getUsername(), apartmentId)).start();
-                break;
-            }
-
-            new Thread(new UploadImage(img, userDetails.getUsername(), apartmentId)).start();
-        }
-
+        uploadImageService.uploadApartmentImages(apartmentImagesForm.getImages(), userDetails.getUsername(), apartmentId);
         sessionStatus.setComplete();
 
         while (true) {
-            if(firstImageUploaded == true) {
+            if(UploadImageService.firstImageUploaded == true) {
                 break;
             }
         }
@@ -230,52 +208,6 @@ public class ApartmentController {
                 .limit(numOfDaysBetween)
                 .mapToObj(i -> startDate.plusDays(i))
                 .collect(Collectors.toList());
-    }
-
-    class UploadImage implements Runnable {
-        private String imgBase64;
-        private String userEmail;
-        private int apartmentId;
-
-        UploadImage(String imgBase64, String userEmail, int apartmentId) {
-            this.imgBase64 = imgBase64;
-            this.userEmail = userEmail;
-            this.apartmentId = apartmentId;
-        }
-
-        public void run() {
-            byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(imgBase64);
-            InputStream inputStream = new ByteArrayInputStream(imageBytes);
-            String fileName = UUID.randomUUID().toString();
-            try {
-                String filePath = "/" + userEmail + "/" + fileName + ".jpg";
-                boolean isExceptionThrows;
-                do {
-                    isExceptionThrows = false;
-
-                    try {
-                        client.files().uploadBuilder(filePath).withMode(WriteMode.ADD).uploadAndFinish(inputStream);
-                    } catch (RateLimitException exception) {
-                        isExceptionThrows = true;
-                    } catch (RetryException exception) {
-                        isExceptionThrows = true;
-                    }
-                } while (isExceptionThrows);
-
-                SharedLinkMetadata slm = client.sharing().createSharedLinkWithSettings(filePath, SharedLinkSettings.newBuilder().withRequestedVisibility(RequestedVisibility.PUBLIC).build());
-                String url = slm.getUrl();
-                apartmentImageRepository.save(new ApartmentImage(filePath, getDlUriToDropBoxImage(url), new Apartment(apartmentId)));
-                firstImageUploaded = true;
-            } catch (DbxException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        private String getDlUriToDropBoxImage(String oldUrl) {
-            return oldUrl.replace("www.dropbox.com", "dl.dropboxusercontent.com").replace("?dl=0", "");
-        }
     }
 }
 

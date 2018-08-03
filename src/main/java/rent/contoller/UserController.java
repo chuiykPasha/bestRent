@@ -11,10 +11,12 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import rent.entities.Role;
 import rent.entities.User;
+import rent.form.AddAvatarForm;
 import rent.form.ChangePasswordForm;
 import rent.form.ChangeProfileForm;
 import rent.form.RegisterForm;
 import rent.repository.UserRepository;
+import rent.service.UploadImageService;
 
 import javax.validation.Valid;
 import java.util.Collections;
@@ -26,6 +28,8 @@ public class UserController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private UploadImageService uploadImageService;
 
     @GetMapping("/register")
     public String register(RegisterForm registerForm) {
@@ -101,5 +105,20 @@ public class UserController {
         user.setPassword(passwordEncoder.encode(form.getNewPassword()));
         userRepository.save(user);
         return "/userProfile/index";
+    }
+
+    @GetMapping("/user-photo")
+    public String userPhoto(@AuthenticationPrincipal User user, Model model, AddAvatarForm addAvatarForm) {
+        String avatarUrl = user.getAvatarUrl() != null ? user.getAvatarUrl() : User.DEFAULT_AVATAR;
+        model.addAttribute("avatar", avatarUrl);
+
+        return "/userProfile/userPhoto";
+    }
+
+    @PostMapping("/user-photo")
+    public String userPhotoSave(@AuthenticationPrincipal User user, @Valid AddAvatarForm addAvatarForm, Model model){
+        String avatarUrl =  uploadImageService.uploadAvatar(addAvatarForm.getAvatar(), user.getEmail());
+        model.addAttribute("avatar", avatarUrl);
+        return "/userProfile/userPhoto";
     }
 }
