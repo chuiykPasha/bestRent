@@ -57,7 +57,12 @@ public class UserController {
     }
 
     @GetMapping("/user-profile")
-    public String showProfile() {
+    public String showProfile(@AuthenticationPrincipal User user, Model model) {
+        String avatar = user.getAvatarUrl() == null ? User.DEFAULT_AVATAR : user.getAvatarUrl();
+        model.addAttribute("avatar", avatar);
+        model.addAttribute("userEmail", user.getEmail());
+        model.addAttribute("userName", user.getName());
+        model.addAttribute("userSurName", user.getSurName());
         return "/userProfile/index";
     }
 
