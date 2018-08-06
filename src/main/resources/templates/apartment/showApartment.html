@@ -4,6 +4,18 @@
 <head>
     <title th:text="${apartment.getTitle()}"></title>
     <link rel="stylesheet" type="text/css" th:href="@{/css/hotel-datepicker.css}">
+
+    <style>
+        .overflow-ellipsis {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .break-long-word{
+            word-wrap:break-word;
+        }
+    </style>
 </head>
 <body>
 <div layout:fragment="content">
@@ -40,14 +52,14 @@
     </div>
     <div class="row mt-4" style="min-height: 500px; !important;">
         <div class="col-7">
-            <div class="float-right">
+            <div class="float-right" style="margin-left: 10px;">
                 <img th:src="${apartment.getUser().getAvatarUrl() == null} ? ${defaultAvatar} : ${apartment.getUser().getAvatarUrl()}">
                 <p th:text="${apartment.getUser().getSurName() + ' ' + apartment.getUser().getName()}"></p>
             </div>
                 <h4 th:text="${apartment.getAvailableToGuest().getName()}"></h4>
-                <h3 th:text="${apartment.getTitle()}"></h3>
+                <p class="break-long-word" th:text="${apartment.getTitle()}"></p>
                 <h5 th:text="'Max number of guests ' + ${apartment.getMaxNumberOfGuests()}"></h5>
-                <p th:text="${apartment.getDescription()}"></p>
+                <p class="break-long-word" th:text="${apartment.getDescription()}"></p>
             <div class="row justify-content-center">
                 <div class="col-4">
                     <h6 class="text-center">Comforts</h6>

@@ -21,11 +21,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 @SpringBootApplication
-public class Application {
-    public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
-    }
-    /*@Autowired
+public class Application implements CommandLineRunner{
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
@@ -36,7 +33,7 @@ public class Application {
     }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         User user = userRepository.findByEmail("pasha@gmail.com");
 
         if(user == null) {
@@ -49,5 +46,5 @@ public class Application {
                     roles);
             userRepository.save(user);
         }
-    }*/
+    }
 }

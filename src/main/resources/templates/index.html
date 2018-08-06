@@ -3,7 +3,9 @@
 <head>
     <title>Hello World!</title>
     <style>
-
+        .break-long-word{
+            word-wrap:break-word;
+        }
     </style>
 </head>
 <body>
@@ -36,7 +38,7 @@
                     </th:block>
                 </div>
                 <p th:text="${apartment.getLocation()}"></p>
-                <p th:text="${apartment.getTitle()}"></p>
+                <p class="break-long-word" th:text="${apartment.getTitle()}"></p>
                 <p th:text="${apartment.getPrice() + ' per day'}"></p>
             </div>
 

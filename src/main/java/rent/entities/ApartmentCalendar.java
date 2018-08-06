@@ -14,6 +14,12 @@ public class ApartmentCalendar implements Serializable {
     private Date arrival;
     @Column(nullable = false)
     private Date departure;
+    @Column
+    private boolean firstDayFree;
+    @Column
+    private boolean lastDayFree;
+    @Column
+    private int currentCountGuest;
 
     @ManyToOne
     @JoinColumn(name = "apartmentId", nullable = false)
