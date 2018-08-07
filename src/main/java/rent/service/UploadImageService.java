@@ -78,11 +78,15 @@ public class UploadImageService {
         }
         String url = slm.getUrl();
         User user = userRepository.findByEmail(userEmail);
-        try {
-            client.files().deleteV2(user.getAvatarPath());
-        } catch (DbxException e) {
-            e.printStackTrace();
+
+        if(user.getAvatarUrl() != null) {
+            try {
+                client.files().deleteV2(user.getAvatarPath());
+            } catch (DbxException e) {
+                e.printStackTrace();
+            }
         }
+        
         user.setAvatarPath(filePath);
         user.setAvatarUrl(getDlUriToDropBoxImage(url));
         userRepository.save(user);

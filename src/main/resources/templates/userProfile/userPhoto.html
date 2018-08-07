@@ -5,21 +5,58 @@
         <link rel="stylesheet" type="text/css" th:href="@{/css/cropper.css}">
         <title>User profile</title>
         <style>
-            .modal-dialog,
-            .modal-content {
-                /* 80% of window height */
-                height: 75%;
-            }
-
-            .modal-body {
-                /* 100% = dialog height, 120px = header + footer */
-                max-height: calc(100% - 120px);
-            }
-
             .preview {
                 overflow: hidden;
                 width: 100px;
                 height: 100px;
+            }
+
+            #canvas {
+                width: 600px;
+                height: 400px;
+                border: 1px solid #aaa;
+                cursor: default;
+            }
+            img {
+                max-width: 100%;
+            }
+
+
+            .img-preview {
+                float: left;
+                margin-bottom: .5rem;
+                margin-right: .5rem;
+                overflow: hidden;
+            }
+
+            .img-preview > img {
+                max-width: 100%;
+            }
+
+            .preview-lg {
+                height: 9rem;
+                width: 16rem;
+            }
+
+            .preview-md {
+                height: 4.5rem;
+                width: 8rem;
+            }
+
+            .preview-sm {
+                height: 2.25rem;
+                width: 4rem;
+            }
+
+            .preview-xs {
+                height: 1.125rem;
+                margin-right: 0;
+                width: 2rem;
+            }
+
+            .buttons > button {
+                margin-left: 5px;
+                margin-right: 5px;
             }
         </style>
     </head>
@@ -36,34 +73,23 @@
             <input style="display: none;" id="loadImg" type="file">
             <input type="hidden" id="ImageBase64" name="avatar">
         </form>
+    </div>
 
-
-        <!-- Modal -->
-        <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLongTitle">Avatar</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <div>
-                            <canvas style="width: 600px; min-width: 600px;" id="img"/>
-                        </div>
-                        <div class="preview mt-2" style="margin: auto;"></div>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-primary" id="zoomPlus" style="margin:10px;">+</button>
-                        <button class="btn btn-primary" id="zoomMinus" style="margin:10px;">-</button>
-                        <button type="button" class="btn btn-primary" id="crop">Crop</button>
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" id="uploadPhoto">Save changes</button>
-                    </div>
-                </div>
-            </div>
+    <div class="row justify-content-center">
+        <div class="mt-3">
+            <canvas id="canvas">
+                Your browser does not support HTML5 Canvas
+            </canvas>
         </div>
+        <div class="img-preview mt-3 align-middle" style="width: 256px; height: 144px; margin-left: 5px;">
+        </div>
+    </div>
+    <div id="result"></div>
+    <div class="row justify-content-center mt-2 buttons">
+        <button class="btn btn-primary" id="zoomPlus">+</button>
+        <button class="btn btn-primary" id="zoomMinus">-</button>
+        <button type="button" class="btn btn-primary" id="crop">Crop</button>
+        <button type="button" class="btn btn-primary" id="uploadPhoto">Change photo</button>
     </div>
     <script type="text/javascript" th:src="@{/js/cropper.js}"></script>
     <script type="text/javascript" th:src="@{/js/script.js}"></script>
@@ -73,9 +99,9 @@
             var uploadPhotoBtn = document.getElementById('uploadPhoto');
 
             uploadPhotoBtn.addEventListener('click', function () {
-                var $canvas = $("#img");
+                var $canvas = $("#canvas");
                 var croppedImage = $canvas.cropper('getCroppedCanvas', {width: 240, height: 240}).toDataURL('image/jpg');
-                $('#result').html($('<img>').attr('src', croppedImage));
+                $('#result').html($('<canvas>').attr('src', croppedImage));
                 console.log(croppedImage);
                 //Зображення обрізане записуємо у скрите поле на формі
                 $('#ImageBase64').attr("value", croppedImage);
@@ -83,7 +109,6 @@
             })
         }
     </script>
-
 </div>
 </body>
 </html>

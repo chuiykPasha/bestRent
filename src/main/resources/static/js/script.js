@@ -1,5 +1,5 @@
 $(function () {
-    var $canvas = $("#img"),
+    var $canvas = $("#canvas"),
         context = $canvas.get(0).getContext('2d');
 
         $("#dragModeMove").on("click", function () {
@@ -58,12 +58,12 @@ $(function () {
 
         $("#zoomPlus").on("click", function () {
             //var cropperImage = $canvas.cropper('getCroppedCanvas').toDataURL('image/jpg');
-            $('#img').cropper('zoom', 0.1);
+            $('#canvas').cropper('zoom', 0.1);
         });
     
         $("#zoomMinus").on("click", function () {
             //var cropperImage = $canvas.cropper('getCroppedCanvas').toDataURL('image/jpg');
-            $('#img').cropper('zoom', -0.1);
+            $('#canvas').cropper('zoom', -0.1);
         });
 
     $('#loadImg').on('change', function () {
@@ -83,16 +83,18 @@ $(function () {
                         var cropper = $canvas.cropper('destroy').cropper({
                             aspectRatio: 1 / 1,
                             dragMode: 'move',
-                            preview: '.preview',
+                            preview: '.img-preview',
                             minCropBoxHeight: 100,
                             minCropBoxWidth: 100,
+                            viewMode: 1,
+                            autoCropArea: 0.00000001,
                         });
                     }
                     img.src = e.target.result;
                 };
                 $("#crop").click(function () {
                     var croppedImage = $canvas.cropper('getCroppedCanvas', {width: 240, height: 240}).toDataURL('image/jpg');
-                    $('#result').html($('<img>').attr('src', croppedImage));
+                    $('#result').html($('<canvas>').attr('src', croppedImage));
                     console.log(croppedImage);
                     //Зображення обрізане записуємо у скрите поле на формі
                     $('#ImageBase64').attr("value", croppedImage);
