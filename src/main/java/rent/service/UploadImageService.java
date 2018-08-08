@@ -86,7 +86,7 @@ public class UploadImageService {
                 e.printStackTrace();
             }
         }
-        
+
         user.setAvatarPath(filePath);
         user.setAvatarUrl(getDlUriToDropBoxImage(url));
         userRepository.save(user);

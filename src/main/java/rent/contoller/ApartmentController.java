@@ -55,6 +55,8 @@ public class ApartmentController {
     private final int sizeApartmentsInPage = 9;
     @Autowired
     private UploadImageService uploadImageService;
+    private final String SHARED_ROOM = "Shared room";
+    private final int REMOVE_FIRST_DATE = 0;
 
     private ApartmentController() {
     }
@@ -82,16 +84,27 @@ public class ApartmentController {
     }
 
     @GetMapping("/apartment/{apartment}")
-    public String showApartmentById(Apartment apartment, Model model) {
+    public String showApartmentById(Apartment apartment, Model model, @AuthenticationPrincipal User user) {
         model.addAttribute("apartment", apartment);
         model.addAttribute("apartmentId", apartment.getId());
         model.addAttribute("defaultAvatar", User.DEFAULT_AVATAR);
+        model.addAttribute("availableToGuest", apartment.getAvailableToGuest().getName());
+        model.addAttribute("userOnPage", user != null? "userLogin" : "guest");
 
         List<LocalDate> dates = new ArrayList<>();
 
         for(ApartmentCalendar calendar : apartment.getCalendars()) {
-            dates.addAll(getDatesBetween(calendar.getArrival().toLocalDate(), calendar.getDeparture().toLocalDate()));
-            dates.add(calendar.getDeparture().toLocalDate());
+            List<LocalDate> datesBetween = getDatesBetween(calendar.getArrival().toLocalDate(), calendar.getDeparture().toLocalDate());
+            datesBetween.remove( REMOVE_FIRST_DATE);
+            dates.addAll(datesBetween);
+
+            if(!calendar.isFirstDayFree()) {
+                dates.add(calendar.getArrival().toLocalDate());
+            }
+
+            if(!calendar.isLastDayFree()){
+                dates.add(calendar.getDeparture().toLocalDate());
+            }
         }
 
         model.addAttribute("disabledDates", dates);
@@ -176,7 +189,7 @@ public class ApartmentController {
 
 
     @RequestMapping(value = "/apartment-booking", method = RequestMethod.POST, produces = "text/plain")
-    public @ResponseBody String apartmentBooking(@RequestParam String bookingDates, @RequestParam int apartmentId) {
+    public @ResponseBody String apartmentBooking(@RequestParam String bookingDates, @RequestParam int apartmentId, @RequestParam String availableToGuest) {
         final int START_DATE = 0;
         final int END_DATE = 1;
 
@@ -190,14 +203,63 @@ public class ApartmentController {
             return "try again, wrong request";
         }
 
-        for(String s : dates) {
-            System.out.println(s);
+        if(availableToGuest == SHARED_ROOM) {
+
+        } else {
+            List<ApartmentCalendar> beetwenDates = apartmentCalendarRepository.checkBetweenDates(apartmentId, Date.valueOf(dates[START_DATE]), Date.valueOf(dates[END_DATE]));
+
+            if(!beetwenDates.isEmpty()){
+                return "wrong;";
+            }
+
+            int count = apartmentCalendarRepository.checkDates(apartmentId,
+                    Date.valueOf(dates[START_DATE]),
+                    Date.valueOf(dates[END_DATE]));
+
+            if(count == 0) {
+                ApartmentCalendar firstDay = apartmentCalendarRepository.isFirstDayFree(apartmentId, Date.valueOf(dates[START_DATE]));
+
+                if(firstDay != null) {
+
+                    firstDay.setFirstDayFree(false);
+                    apartmentCalendarRepository.save(firstDay);
+                    ApartmentCalendar apartmentCalendar = new ApartmentCalendar(Date.valueOf(dates[START_DATE]),
+                            Date.valueOf(dates[END_DATE]),
+                            new Apartment(apartmentId),
+                            false,
+                            true,
+                            1);
+                    apartmentCalendarRepository.save(apartmentCalendar);
+                    return "ok";
+                }
+
+                ApartmentCalendar lastDay = apartmentCalendarRepository.isFirstDayFree(apartmentId, Date.valueOf(dates[END_DATE]));
+
+                if(lastDay != null){
+                    lastDay.setLastDayFree(false);
+                    apartmentCalendarRepository.save(lastDay);
+                    ApartmentCalendar apartmentCalendar = new ApartmentCalendar(Date.valueOf(dates[START_DATE]),
+                            Date.valueOf(dates[END_DATE]),
+                            new Apartment(apartmentId),
+                            true,
+                            false,
+                            1);
+                    apartmentCalendarRepository.save(apartmentCalendar);
+                    return "ok";
+                }
+
+                ApartmentCalendar apartmentCalendar = new ApartmentCalendar(Date.valueOf(dates[START_DATE]),
+                        Date.valueOf(dates[END_DATE]),
+                        new Apartment(apartmentId),
+                        true,
+                        true,
+                        1);
+                apartmentCalendarRepository.save(apartmentCalendar);
+            } else {
+                return "Sorry.These dates are not free";
+            }
         }
 
-        ApartmentCalendar apartmentCalendar = new ApartmentCalendar(Date.valueOf(dates[START_DATE]), Date.valueOf(dates[END_DATE]), new Apartment(apartmentId));
-        apartmentCalendarRepository.save(apartmentCalendar);
-        System.out.println(bookingDates);
-        System.out.println(apartmentId);
         return "ok";
     }
 

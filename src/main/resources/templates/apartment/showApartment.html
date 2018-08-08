@@ -53,7 +53,7 @@
     <div class="row mt-4" style="min-height: 500px; !important;">
         <div class="col-7">
             <div class="float-right" style="margin-left: 10px;">
-                <img th:src="${apartment.getUser().getAvatarUrl() == null} ? ${defaultAvatar} : ${apartment.getUser().getAvatarUrl()}">
+                <img style="width: 100px;height: 100px;" th:src="${apartment.getUser().getAvatarUrl() == null} ? ${defaultAvatar} : ${apartment.getUser().getAvatarUrl()}">
                 <p th:text="${apartment.getUser().getSurName() + ' ' + apartment.getUser().getName()}"></p>
             </div>
                 <h4 th:text="${apartment.getAvailableToGuest().getName()}"></h4>
@@ -77,8 +77,11 @@
                         type="hidden"
                         th:name="${_csrf.parameterName}"
                         th:value="${_csrf.token}" />
-                <p class="alert alert-danger mt-2" role="alert">Test</p>
-                <button id="reservation">Reservation</button>
+                <input class="form-control mt-2" id="maxNumberOfGuests" value="1"
+                       min="1"
+                       max="16" type="number"/>
+                <p id="showErrorMsg" class="alert alert-danger mt-2" style="display: none" role="alert">Test</p>
+                <button class="mt-2" id="reservation">Reservation</button>
             </div>
         </div>
     </div>
@@ -88,11 +91,14 @@
         $(document).ready(function(){
             var dates = /*[[${disabledDates}]]*/ "default";
             var apartmentId = /*[[${apartmentId}]]*/ "default";
+            var userOnPage = /*[[${userOnPage}]]*/ "default";
+            var availableToGuest = /*[[${availableToGuest}]]*/ "default";
+
+            var showMsg = document.getElementById("showErrorMsg");
 
             var input = document.getElementById('setDate');
             var datepicker = new HotelDatepicker(input, {
                 disabledDates: dates,
-                enableCheckout: true,
             });
 
             $('.carousel').carousel({
@@ -102,12 +108,17 @@
             var reservationBtn = document.getElementById("reservation");
 
             reservationBtn.addEventListener('click', function () {
+                if(userOnPage == 'guest') {
+
+                    return;
+                }
+
                 var date = input.value;
 
                 $.ajax({
                     url : '/apartment-booking',
                     headers: {"X-CSRF-TOKEN": $("input[name='_csrf']").val()},
-                    data: {bookingDates : date, apartmentId : apartmentId},
+                    data: {bookingDates : date, apartmentId : apartmentId, availableToGuest: availableToGuest},
                     type : 'POST',
                     success : function(result) {
                         console.log("I am here");

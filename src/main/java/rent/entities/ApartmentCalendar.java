@@ -29,10 +29,13 @@ public class ApartmentCalendar implements Serializable {
 
     public ApartmentCalendar() {}
 
-    public ApartmentCalendar(Date arrival, Date departure, Apartment apartment) {
+    public ApartmentCalendar(Date arrival, Date departure, Apartment apartment, boolean firstDayFree, boolean lastDayFree, int currentCountGuest) {
         this.arrival = arrival;
         this.departure = departure;
         this.apartment = apartment;
+        this.firstDayFree = firstDayFree;
+        this.lastDayFree = lastDayFree;
+        this.currentCountGuest = currentCountGuest;
     }
 
     public Integer getId() {
@@ -65,5 +68,29 @@ public class ApartmentCalendar implements Serializable {
 
     public void setApartment(Apartment apartment) {
         this.apartment = apartment;
+    }
+
+    public boolean isFirstDayFree() {
+        return firstDayFree;
+    }
+
+    public void setFirstDayFree(boolean firstDayFree) {
+        this.firstDayFree = firstDayFree;
+    }
+
+    public boolean isLastDayFree() {
+        return lastDayFree;
+    }
+
+    public void setLastDayFree(boolean lastDayFree) {
+        this.lastDayFree = lastDayFree;
+    }
+
+    public int getCurrentCountGuest() {
+        return currentCountGuest;
+    }
+
+    public void setCurrentCountGuest(int currentCountGuest) {
+        this.currentCountGuest = currentCountGuest;
     }
 }
