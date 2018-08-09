@@ -93,18 +93,47 @@ public class ApartmentController {
 
         List<LocalDate> dates = new ArrayList<>();
 
-        for(ApartmentCalendar calendar : apartment.getCalendars()) {
-            List<LocalDate> datesBetween = getDatesBetween(calendar.getArrival().toLocalDate(), calendar.getDeparture().toLocalDate());
-            datesBetween.remove( REMOVE_FIRST_DATE);
-            dates.addAll(datesBetween);
+        if (!apartment.getAvailableToGuest().getName().equals(SHARED_ROOM)) {
+            for (ApartmentCalendar calendar : apartment.getCalendars()) {
+                List<LocalDate> datesBetween = getDatesBetween(calendar.getArrival().toLocalDate(), calendar.getDeparture().toLocalDate());
+                datesBetween.remove(REMOVE_FIRST_DATE);
+                dates.addAll(datesBetween);
 
-            if(!calendar.isFirstDayFree()) {
-                dates.add(calendar.getArrival().toLocalDate());
+                if (!calendar.isFirstDayFree()) {
+                    dates.add(calendar.getArrival().toLocalDate());
+                }
+
+                if (!calendar.isLastDayFree()) {
+                    dates.add(calendar.getDeparture().toLocalDate());
+                }
+            }
+        } else {
+            Map<LocalDate, Integer> checkDates = new HashMap<>();
+
+            for(ApartmentCalendar calendar : apartment.getCalendars()){
+                List<LocalDate> datesBetween = getDatesBetween(calendar.getArrival().toLocalDate(), calendar.getDeparture().toLocalDate());
+                datesBetween.add(calendar.getDeparture().toLocalDate());
+
+                for(LocalDate date : datesBetween) {
+
+                    if(checkDates.containsKey(date)){
+                        int countDate = checkDates.get(date).intValue();
+                        checkDates.put(date, countDate + calendar.getCurrentCountGuest());
+                        continue;
+                    }
+
+                    checkDates.put(date, calendar.getCurrentCountGuest());
+                }
             }
 
-            if(!calendar.isLastDayFree()){
-                dates.add(calendar.getDeparture().toLocalDate());
+
+            for(Map.Entry<LocalDate, Integer> checkDate : checkDates.entrySet()){
+                if(checkDate.getValue() == apartment.getMaxNumberOfGuests()){
+                    dates.add(checkDate.getKey());
+                }
             }
+
+            System.out.println(checkDates.toString());
         }
 
         model.addAttribute("disabledDates", dates);
@@ -189,7 +218,7 @@ public class ApartmentController {
 
 
     @RequestMapping(value = "/apartment-booking", method = RequestMethod.POST, produces = "text/plain")
-    public @ResponseBody String apartmentBooking(@RequestParam String bookingDates, @RequestParam int apartmentId, @RequestParam String availableToGuest) {
+    public @ResponseBody String apartmentBooking(@RequestParam String bookingDates, @RequestParam int apartmentId, @RequestParam String availableToGuest, @RequestParam int guestsCount, @RequestParam int maxNumberOfGuests) {
         final int START_DATE = 0;
         final int END_DATE = 1;
 
@@ -203,8 +232,21 @@ public class ApartmentController {
             return "try again, wrong request";
         }
 
-        if(availableToGuest == SHARED_ROOM) {
+        if(availableToGuest.equals(SHARED_ROOM)) {
+            Integer currentGuestsCount = apartmentCalendarRepository.checkGuestsInSharedRoom(apartmentId, Date.valueOf(dates[START_DATE]), Date.valueOf(dates[END_DATE]));
 
+            if(currentGuestsCount != null && (currentGuestsCount == maxNumberOfGuests || (currentGuestsCount + guestsCount) > maxNumberOfGuests)){
+                return "Sorry no places.";
+            }
+
+            ApartmentCalendar apartmentCalendar = new ApartmentCalendar(Date.valueOf(dates[START_DATE]),
+                    Date.valueOf(dates[END_DATE]),
+                    new Apartment(apartmentId),
+                    true,
+                    true,
+                    guestsCount);
+            apartmentCalendarRepository.save(apartmentCalendar);
+            return "ok";
         } else {
             List<ApartmentCalendar> beetwenDates = apartmentCalendarRepository.checkBetweenDates(apartmentId, Date.valueOf(dates[START_DATE]), Date.valueOf(dates[END_DATE]));
 
@@ -228,7 +270,7 @@ public class ApartmentController {
                             new Apartment(apartmentId),
                             false,
                             true,
-                            1);
+                            guestsCount);
                     apartmentCalendarRepository.save(apartmentCalendar);
                     return "ok";
                 }
@@ -243,7 +285,7 @@ public class ApartmentController {
                             new Apartment(apartmentId),
                             true,
                             false,
-                            1);
+                            guestsCount);
                     apartmentCalendarRepository.save(apartmentCalendar);
                     return "ok";
                 }
@@ -253,7 +295,7 @@ public class ApartmentController {
                         new Apartment(apartmentId),
                         true,
                         true,
-                        1);
+                        guestsCount);
                 apartmentCalendarRepository.save(apartmentCalendar);
             } else {
                 return "Sorry.These dates are not free";

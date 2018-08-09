@@ -77,9 +77,10 @@
                         type="hidden"
                         th:name="${_csrf.parameterName}"
                         th:value="${_csrf.token}" />
-                <input class="form-control mt-2" id="maxNumberOfGuests" value="1"
+                <input class="form-control mt-2" id="guests" value="1" th:max="${apartment.getMaxNumberOfGuests()}"
                        min="1"
-                       max="16" type="number"/>
+                       type="number"/>
+                <input type="hidden" id="maxNumberOfGuests" th:value="${apartment.getMaxNumberOfGuests()}">
                 <p id="showErrorMsg" class="alert alert-danger mt-2" style="display: none" role="alert">Test</p>
                 <button class="mt-2" id="reservation">Reservation</button>
             </div>
@@ -93,6 +94,8 @@
             var apartmentId = /*[[${apartmentId}]]*/ "default";
             var userOnPage = /*[[${userOnPage}]]*/ "default";
             var availableToGuest = /*[[${availableToGuest}]]*/ "default";
+            var guestsInput = document.getElementById('guests');
+            var maxNumberOfGuests = document.getElementById('maxNumberOfGuests');
 
             var showMsg = document.getElementById("showErrorMsg");
 
@@ -118,7 +121,12 @@
                 $.ajax({
                     url : '/apartment-booking',
                     headers: {"X-CSRF-TOKEN": $("input[name='_csrf']").val()},
-                    data: {bookingDates : date, apartmentId : apartmentId, availableToGuest: availableToGuest},
+                    data: {bookingDates : date,
+                        apartmentId : apartmentId,
+                        availableToGuest: availableToGuest,
+                        guestsCount: guestsInput.value,
+                        maxNumberOfGuests: maxNumberOfGuests.value
+                    },
                     type : 'POST',
                     success : function(result) {
                         console.log("I am here");

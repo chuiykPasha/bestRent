@@ -21,4 +21,7 @@ public interface ApartmentCalendarRepository extends JpaRepository<ApartmentCale
 
     @Query("SELECT a FROM ApartmentCalendar a WHERE a.apartment.id = :apartmentId AND a.arrival BETWEEN :arrive AND :departure OR a.departure BETWEEN :arrive AND :departure")
     List<ApartmentCalendar> checkBetweenDates(@Param("apartmentId") int apartmentId, @Param("arrive") Date arrive, @Param("departure") Date departure);
+
+    @Query("SELECT SUM(a.currentCountGuest) FROM ApartmentCalendar a WHERE a.apartment.id = :apartmentId AND a.arrival = :arrive AND a.departure = :departure")
+    Integer checkGuestsInSharedRoom(@Param("apartmentId") int apartmentId, @Param("arrive") Date arrive, @Param("departure") Date departure);
 }
