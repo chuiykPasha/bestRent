@@ -112,7 +112,9 @@
 
             reservationBtn.addEventListener('click', function () {
                 if(userOnPage == 'guest') {
-
+                    console.log('guest');
+                    showMsg.innerText = 'Need login for reservation';
+                    showMsg.style = 'display: block';
                     return;
                 }
 
@@ -129,8 +131,16 @@
                     },
                     type : 'POST',
                     success : function(result) {
-                        console.log("I am here");
-                        console.log(result);
+                        showMsg.innerText = result;
+                        if(result == 'Reservation is successful') {
+                            showMsg.classList.remove('alert-danger');
+                            showMsg.classList.add('alert-success');
+                        } else {
+                            showMsg.classList.remove('alert-success');
+                            showMsg.classList.add('alert-danger');
+                        }
+
+                        showMsg.style = 'display: block';
                     }
                 })
             });

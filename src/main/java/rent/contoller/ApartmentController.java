@@ -223,13 +223,13 @@ public class ApartmentController {
         final int END_DATE = 1;
 
         if(bookingDates == null) {
-            return "try again";
+            return "Wrong dates";
         }
 
         String [] dates = bookingDates.split(" - ");
 
         if(dates.length != 2) {
-            return "try again, wrong request";
+            return "Wrong dates";
         }
 
         if(availableToGuest.equals(SHARED_ROOM)) {
@@ -246,12 +246,12 @@ public class ApartmentController {
                     true,
                     guestsCount);
             apartmentCalendarRepository.save(apartmentCalendar);
-            return "ok";
+            return "Reservation is successful";
         } else {
             List<ApartmentCalendar> beetwenDates = apartmentCalendarRepository.checkBetweenDates(apartmentId, Date.valueOf(dates[START_DATE]), Date.valueOf(dates[END_DATE]));
 
             if(!beetwenDates.isEmpty()){
-                return "wrong;";
+                return "Sorry, these dates are reserved";
             }
 
             int count = apartmentCalendarRepository.checkDates(apartmentId,
@@ -272,7 +272,7 @@ public class ApartmentController {
                             true,
                             guestsCount);
                     apartmentCalendarRepository.save(apartmentCalendar);
-                    return "ok";
+                    return "Reservation is successful";
                 }
 
                 ApartmentCalendar lastDay = apartmentCalendarRepository.isFirstDayFree(apartmentId, Date.valueOf(dates[END_DATE]));
@@ -287,7 +287,7 @@ public class ApartmentController {
                             false,
                             guestsCount);
                     apartmentCalendarRepository.save(apartmentCalendar);
-                    return "ok";
+                    return "Reservation is successful";
                 }
 
                 ApartmentCalendar apartmentCalendar = new ApartmentCalendar(Date.valueOf(dates[START_DATE]),
@@ -302,7 +302,7 @@ public class ApartmentController {
             }
         }
 
-        return "ok";
+        return "Reservation is successful";
     }
 
     private List<LocalDate> getDatesBetween(LocalDate startDate, LocalDate endDate) {
