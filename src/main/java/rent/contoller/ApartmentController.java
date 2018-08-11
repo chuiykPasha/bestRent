@@ -126,14 +126,20 @@ public class ApartmentController {
                 }
             }
 
+            //checkLastDates
+            for(ApartmentCalendar  lastDay : apartment.getCalendars()){
+                int countDate = checkDates.get(lastDay.getDeparture().toLocalDate()).intValue();
+                countDate -= lastDay.getCurrentCountGuest();
+                checkDates.put(lastDay.getDeparture().toLocalDate(), countDate);
+            }
 
+
+            //fill blocket dates
             for(Map.Entry<LocalDate, Integer> checkDate : checkDates.entrySet()){
                 if(checkDate.getValue() == apartment.getMaxNumberOfGuests()){
                     dates.add(checkDate.getKey());
                 }
             }
-
-            System.out.println(checkDates.toString());
         }
 
         model.addAttribute("disabledDates", dates);
@@ -233,9 +239,64 @@ public class ApartmentController {
         }
 
         if(availableToGuest.equals(SHARED_ROOM)) {
-            Integer currentGuestsCount = apartmentCalendarRepository.checkGuestsInSharedRoom(apartmentId, Date.valueOf(dates[START_DATE]), Date.valueOf(dates[END_DATE]));
+            boolean noPlaces = false;
+            List<ApartmentCalendar> testBetweenDates = apartmentCalendarRepository.checkBetweenDates(apartmentId, Date.valueOf(dates[START_DATE]), Date.valueOf(dates[END_DATE]));
 
-            if(currentGuestsCount != null && (currentGuestsCount == maxNumberOfGuests || (currentGuestsCount + guestsCount) > maxNumberOfGuests)){
+            int departureCount = 0;
+            int arrivalCOunt = 0;
+
+            for(ApartmentCalendar calendar : testBetweenDates) {
+                Date departureDate = calendar.getDeparture();
+                if(departureDate.equals(Date.valueOf(dates[START_DATE]))){
+                    departureCount += calendar.getCurrentCountGuest();
+                }
+
+                if(calendar.getArrival().equals(Date.valueOf(dates[START_DATE]))){
+                    arrivalCOunt += calendar.getCurrentCountGuest();
+                }
+            }
+
+            if((departureCount != 0 && departureCount < guestsCount) && arrivalCOunt < guestsCount){
+                return "Sorry no places";
+            }
+
+            Map<LocalDate, Integer> checkDates = new HashMap<>();
+
+            for(ApartmentCalendar calendar : testBetweenDates){
+                List<LocalDate> datesBetween = getDatesBetween(calendar.getArrival().toLocalDate(), calendar.getDeparture().toLocalDate());
+                datesBetween.add(calendar.getDeparture().toLocalDate());
+
+                for(LocalDate date : datesBetween) {
+                    if(date.equals(Date.valueOf(dates[START_DATE]).toLocalDate())){
+                        continue;
+                    }
+
+                    if(checkDates.containsKey(date)){
+                        int countDate = checkDates.get(date).intValue();
+                        checkDates.put(date, countDate + calendar.getCurrentCountGuest());
+                        continue;
+                    }
+
+                    checkDates.put(date, calendar.getCurrentCountGuest());
+                }
+            }
+
+            System.out.println(checkDates);
+
+            List<LocalDate> reservationDates = getDatesBetween(Date.valueOf(dates[START_DATE]).toLocalDate(), Date.valueOf(dates[END_DATE]).toLocalDate());
+            reservationDates.add(Date.valueOf(dates[END_DATE]).toLocalDate());
+
+
+            //fill blocket dates
+            for(Map.Entry<LocalDate, Integer> checkDate : checkDates.entrySet()){
+                for(LocalDate reservationDate : reservationDates) {
+                    if (checkDate.getKey().equals(reservationDate) && checkDate.getValue() == maxNumberOfGuests){
+                        noPlaces = true;
+                    }
+                }
+            }
+
+            if(noPlaces){
                 return "Sorry no places.";
             }
 
