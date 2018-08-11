@@ -90,6 +90,7 @@ public class ApartmentController {
         model.addAttribute("defaultAvatar", User.DEFAULT_AVATAR);
         model.addAttribute("availableToGuest", apartment.getAvailableToGuest().getName());
         model.addAttribute("userOnPage", user != null? "userLogin" : "guest");
+        model.addAttribute("userId", apartment.getUser().getId());
 
         List<LocalDate> dates = new ArrayList<>();
 

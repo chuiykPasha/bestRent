@@ -53,7 +53,7 @@
     <div class="row mt-4" style="min-height: 500px; !important;">
         <div class="col-7">
             <div class="float-right" style="margin-left: 10px;">
-                <img style="width: 100px;height: 100px;" th:src="${apartment.getUser().getAvatarUrl() == null} ? ${defaultAvatar} : ${apartment.getUser().getAvatarUrl()}">
+                <a th:href="@{/user-profile/} + ${userId}"><img style="width: 100px;height: 100px;" th:src="${apartment.getUser().getAvatarUrl() == null} ? ${defaultAvatar} : ${apartment.getUser().getAvatarUrl()}"></a>
                 <p th:text="${apartment.getUser().getSurName() + ' ' + apartment.getUser().getName()}"></p>
             </div>
                 <h4 th:text="${apartment.getAvailableToGuest().getName()}"></h4>

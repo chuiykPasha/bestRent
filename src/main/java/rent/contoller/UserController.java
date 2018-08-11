@@ -56,14 +56,14 @@ public class UserController {
         return "redirect:/login";
     }
 
-    @GetMapping("/user-profile")
-    public String showProfile(@AuthenticationPrincipal User user, Model model) {
+    @GetMapping("/user-profile/{user}")
+    public String showProfile(User user, Model model) {
         String avatar = user.getAvatarUrl() == null ? User.DEFAULT_AVATAR : user.getAvatarUrl();
         model.addAttribute("avatar", avatar);
         model.addAttribute("userEmail", user.getEmail());
         model.addAttribute("userName", user.getName());
         model.addAttribute("userSurName", user.getSurName());
-        return "/userProfile/index";
+        return "/userProfile/userProfile";
     }
 
     @GetMapping("/change-profile")
@@ -88,7 +88,7 @@ public class UserController {
         user.setName(form.getName());
         user.setSurName(form.getSurName());
         userRepository.save(user);
-        return "/userProfile/index";
+        return "/userProfile/changeProfile";
     }
 
     @GetMapping("/change-password")
@@ -109,7 +109,7 @@ public class UserController {
 
         user.setPassword(passwordEncoder.encode(form.getNewPassword()));
         userRepository.save(user);
-        return "/userProfile/index";
+        return "/userProfile/changeProfile";
     }
 
     @GetMapping("/user-photo")
