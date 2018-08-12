@@ -55,6 +55,8 @@ public class ApartmentController {
     private final int sizeApartmentsInPage = 9;
     @Autowired
     private UploadImageService uploadImageService;
+    @Autowired
+    private UserRepository userRepository;
     private final String SHARED_ROOM = "Shared room";
     private final int REMOVE_FIRST_DATE = 0;
 
@@ -218,6 +220,11 @@ public class ApartmentController {
             if(UploadImageService.firstImageUploaded == true) {
                 break;
             }
+        }
+
+        if(!user.getRoles().contains(Role.LANDLORD)) {
+            user.getRoles().add(Role.LANDLORD);
+            userRepository.save(user);
         }
 
         return "redirect:/";
