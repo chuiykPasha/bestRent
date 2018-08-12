@@ -7,6 +7,7 @@ import com.dropbox.core.v2.files.*;
 import com.dropbox.core.v2.sharing.RequestedVisibility;
 import com.dropbox.core.v2.sharing.SharedLinkMetadata;
 import com.dropbox.core.v2.sharing.SharedLinkSettings;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -373,6 +374,14 @@ public class ApartmentController {
 
         return "Reservation is successful";
     }
+
+    @GetMapping("my-advertisements")
+    public String showMyAdvertisements(@AuthenticationPrincipal User user, Model model) {
+        Hibernate.initialize(user.getApartments());
+        model.addAttribute("apartments", user.getApartments());
+        return "myAdvertisements";
+    }
+
 
     private List<LocalDate> getDatesBetween(LocalDate startDate, LocalDate endDate) {
 
