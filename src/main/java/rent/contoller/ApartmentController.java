@@ -62,6 +62,7 @@ public class ApartmentController {
     private UserRepository userRepository;
     private final String SHARED_ROOM = "Shared room";
     private final int REMOVE_FIRST_DATE = 0;
+    private final int SIZE_HISTORY_IN_PAGE = 5;
 
     private ApartmentController() {
     }
@@ -389,19 +390,25 @@ public class ApartmentController {
     }
 
     @GetMapping("owner-rent-history")
-    public String ownerRentHistory(@AuthenticationPrincipal User user, @RequestParam(name = "page", required = false) Integer page ){
+    public String ownerRentHistory(@AuthenticationPrincipal User user, @RequestParam(name = "page", required = false) Integer page, Model model){
         int pageNumber = page != null ? page - 1 : 0;
         List<Integer> ownerApartmentsId = user.getApartments().stream().map((s) -> s.getId()).collect(Collectors.toList());
-        List<ApartmentCalendar> rent = apartmentCalendarRepository.findByApartmentIdIn(ownerApartmentsId, PageRequest.of(pageNumber, 1, Sort.Direction.DESC, "id"));
-        return null;
+        List<ApartmentCalendar> rent = apartmentCalendarRepository.findByApartmentIdIn(ownerApartmentsId, PageRequest.of(pageNumber, SIZE_HISTORY_IN_PAGE, Sort.Direction.DESC, "id"));
+        final int countPage = (int)Math.ceil(apartmentCalendarRepository.ownerRentHistoryCount(ownerApartmentsId) / SIZE_HISTORY_IN_PAGE);
+        model.addAttribute("rent", rent);
+        model.addAttribute("defaultAvatar", User.DEFAULT_AVATAR);
+        model.addAttribute("countPage", countPage);
+        model.addAttribute("current", pageNumber);
+
+        return "/apartment/ownerRentHistory";
     }
 
 
     @GetMapping("client-booking-history")
     public String clientBookingHistory(@AuthenticationPrincipal User user, @RequestParam(name = "page", required = false) Integer page, Model model){
         final int pageNumber = page != null ? page - 1 : 0;
-        final int countPage = (int)Math.ceil(apartmentCalendarRepository.clientBookingHistoryCount(user.getId()) / 1);
-        List<ApartmentCalendar> booking = apartmentCalendarRepository.findByUserId(user.getId(), PageRequest.of(pageNumber, 1, Sort.Direction.DESC, "id"));
+        final int countPage = (int)Math.ceil(apartmentCalendarRepository.clientBookingHistoryCount(user.getId()) / SIZE_HISTORY_IN_PAGE);
+        List<ApartmentCalendar> booking = apartmentCalendarRepository.findByUserId(user.getId(), PageRequest.of(pageNumber, SIZE_HISTORY_IN_PAGE, Sort.Direction.DESC, "id"));
         model.addAttribute("booking", booking);
         model.addAttribute("defaultAvatar", User.DEFAULT_AVATAR);
         model.addAttribute("countPage", countPage);

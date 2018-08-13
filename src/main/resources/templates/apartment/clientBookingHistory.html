@@ -19,7 +19,7 @@
     <div th:if="${booking != null && !booking.isEmpty()}" class="row justify-content-center mt-5">
         <div th:each="item, iter : ${booking}" class="col-8 border item">
             <div class="float-right" style="margin-left: 10px;">
-                <a th:href="@{/user-profile/} + ${item.getUser().getId()}"><img style="width: 100px;height: 100px;" th:src="${item.getApartment().getUser().getAvatarUrl() == null} ? ${defaultAvatar} : ${item.getApartment().getUser().getAvatarUrl()}"></a>
+                <a th:href="@{/user-profile/} + ${item.getApartment().getUser().getId()}"><img style="width: 100px;height: 100px;" th:src="${item.getApartment().getUser().getAvatarUrl() == null} ? ${defaultAvatar} : ${item.getApartment().getUser().getAvatarUrl()}"></a>
                 <p th:text="${item.getApartment().getUser().getSurName() + ' ' + item.getApartment().getUser().getName()}"></p>
             </div>
             <p th:text="${item.getArrival()} + ' - ' + ${item.getDeparture()}"></p>
