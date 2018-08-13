@@ -33,6 +33,8 @@
                         <a sec:authentication="name" class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></a>
                         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                             <a th:href="@{/my-advertisements}" class="dropdown-item" sec:authorize="hasAuthority('LANDLORD')">My advertisements</a>
+                            <a th:href="@{/owner-rent-history}" class="dropdown-item" sec:authorize="hasAuthority('LANDLORD')">Owner rent history</a>
+                            <a th:href="@{/client-booking-history}" class="dropdown-item">Client booking history</a>
                             <a class="dropdown-item" th:href="@{/change-profile}">Change profile</a>
                             <form class="form-inline" th:action="@{/logout}" method="post">
                                 <input class="dropdown-item" type="submit" value="Sign out"/>

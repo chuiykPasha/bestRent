@@ -1,5 +1,6 @@
 package rent.repository;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,4 +25,11 @@ public interface ApartmentCalendarRepository extends JpaRepository<ApartmentCale
 
     @Query("SELECT SUM(a.currentCountGuest) FROM ApartmentCalendar a WHERE a.apartment.id = :apartmentId AND a.arrival = :arrive AND a.departure = :departure")
     Integer checkGuestsInSharedRoom(@Param("apartmentId") int apartmentId, @Param("arrive") Date arrive, @Param("departure") Date departure);
+
+    List<ApartmentCalendar> findByUserId(int userId, Pageable pageable);
+
+    @Query("SELECT count(*) from ApartmentCalendar a WHERE a.user.id = :userId")
+    int clientBookingHistoryCount(@Param("userId") int userId);
+
+    List<ApartmentCalendar> findByApartmentIdIn(List<Integer> apartmentsId, Pageable pageable);
 }

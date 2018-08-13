@@ -25,17 +25,20 @@ public class ApartmentCalendar implements Serializable {
     @JoinColumn(name = "apartmentId", nullable = false)
     private Apartment apartment;
 
-
+    @ManyToOne
+    @JoinColumn(name = "userId", nullable = false)
+    private User user;
 
     public ApartmentCalendar() {}
 
-    public ApartmentCalendar(Date arrival, Date departure, Apartment apartment, boolean firstDayFree, boolean lastDayFree, int currentCountGuest) {
+    public ApartmentCalendar(Date arrival, Date departure, Apartment apartment, boolean firstDayFree, boolean lastDayFree, int currentCountGuest, User user) {
         this.arrival = arrival;
         this.departure = departure;
         this.apartment = apartment;
         this.firstDayFree = firstDayFree;
         this.lastDayFree = lastDayFree;
         this.currentCountGuest = currentCountGuest;
+        this.user = user;
     }
 
     public Integer getId() {
@@ -92,5 +95,13 @@ public class ApartmentCalendar implements Serializable {
 
     public void setCurrentCountGuest(int currentCountGuest) {
         this.currentCountGuest = currentCountGuest;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

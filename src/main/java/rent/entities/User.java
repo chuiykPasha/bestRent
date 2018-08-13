@@ -33,6 +33,9 @@ public class User implements UserDetails ,Serializable {
     @OneToMany(mappedBy = "user")
     private Set<Apartment> apartments = new HashSet<>();
 
+    @OneToMany(mappedBy = "user")
+    private Set<ApartmentCalendar> booking = new HashSet<>();
+
     public User() {}
 
     public User(String email, String name, String surName, String password, Set<Role> roles) {
@@ -143,5 +146,13 @@ public class User implements UserDetails ,Serializable {
 
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
+    }
+
+    public Set<ApartmentCalendar> getBooking() {
+        return booking;
+    }
+
+    public void setBooking(Set<ApartmentCalendar> booking) {
+        this.booking = booking;
     }
 }

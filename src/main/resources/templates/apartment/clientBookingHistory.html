@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/layout" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Client booking history</title>
+    <style>
+        .item {
+            padding: 5px;
+        }
+
+        .item:hover{
+            color: white;
+            background: lightskyblue;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <h1 class="text-center mt-2">Client booking history</h1>
+    <div th:if="${booking != null && !booking.isEmpty()}" class="row justify-content-center mt-5">
+        <div th:each="item, iter : ${booking}" class="col-8 border item">
+            <div class="float-right" style="margin-left: 10px;">
+                <a th:href="@{/user-profile/} + ${item.getUser().getId()}"><img style="width: 100px;height: 100px;" th:src="${item.getApartment().getUser().getAvatarUrl() == null} ? ${defaultAvatar} : ${item.getApartment().getUser().getAvatarUrl()}"></a>
+                <p th:text="${item.getApartment().getUser().getSurName() + ' ' + item.getApartment().getUser().getName()}"></p>
+            </div>
+            <p th:text="${item.getArrival()} + ' - ' + ${item.getDeparture()}"></p>
+            <p th:text="${item.getApartment().getLocation()}"></p>
+            <p th:text="${'Guests ' + item.getCurrentCountGuest()}"></p>
+            <p th:text="${item.getApartment().getPrice()} + ' day'"></p>
+        </div>
+    </div>
+
+    <div th:if="${countPage > 1}" class="row justify-content-center">
+        <nav aria-label="...">
+            <ul class="pagination">
+                <li th:if="${current != 0}" class="page-item">
+                    <a class="page-link" th:href="@{'/client-booking-history/?page=' + ${current}}" tabindex="-1">Previous</a>
+                </li>
+                <th:block th:each="page : ${#numbers.sequence(0, countPage - 1)}">
+                    <li th:if="${page != current}" class="page-item"><a class="page-link"
+                                                                                            th:href="@{'/client-booking-history/?page=' + ${page + 1}}"
+                                                                                            th:text="${page + 1}"></a></li>
+                    <li th:if="${page  == current}" class="page-item active"><span class="page-link"
+                                                                                   th:text="${page + 1}"><span
+                            class="sr-only">(current)</span></span></li>
+                </th:block>
+                <li th:if="${current + 1 != countPage}" class="page-item">
+                    <a class="page-link" th:href="@{'/client-booking-history/?page=' + ${current + 2}}">Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+</body>
+</html>

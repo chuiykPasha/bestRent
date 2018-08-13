@@ -11,6 +11,7 @@ import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -31,6 +32,7 @@ import rent.service.UploadImageService;
 
 import javax.validation.Valid;
 import java.io.*;
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.sql.Date;
 import java.time.LocalDate;
@@ -233,7 +235,7 @@ public class ApartmentController {
 
 
     @RequestMapping(value = "/apartment-booking", method = RequestMethod.POST, produces = "text/plain")
-    public @ResponseBody String apartmentBooking(@RequestParam String bookingDates, @RequestParam int apartmentId, @RequestParam String availableToGuest, @RequestParam int guestsCount, @RequestParam int maxNumberOfGuests) {
+    public @ResponseBody String apartmentBooking(@AuthenticationPrincipal User user, @RequestParam String bookingDates, @RequestParam int apartmentId, @RequestParam String availableToGuest, @RequestParam int guestsCount, @RequestParam int maxNumberOfGuests) {
         final int START_DATE = 0;
         final int END_DATE = 1;
 
@@ -314,7 +316,8 @@ public class ApartmentController {
                     new Apartment(apartmentId),
                     true,
                     true,
-                    guestsCount);
+                    guestsCount,
+                    user);
             apartmentCalendarRepository.save(apartmentCalendar);
             return "Reservation is successful";
         } else {
@@ -340,7 +343,8 @@ public class ApartmentController {
                             new Apartment(apartmentId),
                             false,
                             true,
-                            guestsCount);
+                            guestsCount,
+                            user);
                     apartmentCalendarRepository.save(apartmentCalendar);
                     return "Reservation is successful";
                 }
@@ -355,7 +359,8 @@ public class ApartmentController {
                             new Apartment(apartmentId),
                             true,
                             false,
-                            guestsCount);
+                            guestsCount,
+                            user);
                     apartmentCalendarRepository.save(apartmentCalendar);
                     return "Reservation is successful";
                 }
@@ -365,7 +370,8 @@ public class ApartmentController {
                         new Apartment(apartmentId),
                         true,
                         true,
-                        guestsCount);
+                        guestsCount,
+                        user);
                 apartmentCalendarRepository.save(apartmentCalendar);
             } else {
                 return "Sorry.These dates are not free";
@@ -382,6 +388,27 @@ public class ApartmentController {
         return "myAdvertisements";
     }
 
+    @GetMapping("owner-rent-history")
+    public String ownerRentHistory(@AuthenticationPrincipal User user, @RequestParam(name = "page", required = false) Integer page ){
+        int pageNumber = page != null ? page - 1 : 0;
+        List<Integer> ownerApartmentsId = user.getApartments().stream().map((s) -> s.getId()).collect(Collectors.toList());
+        List<ApartmentCalendar> rent = apartmentCalendarRepository.findByApartmentIdIn(ownerApartmentsId, PageRequest.of(pageNumber, 1, Sort.Direction.DESC, "id"));
+        return null;
+    }
+
+
+    @GetMapping("client-booking-history")
+    public String clientBookingHistory(@AuthenticationPrincipal User user, @RequestParam(name = "page", required = false) Integer page, Model model){
+        final int pageNumber = page != null ? page - 1 : 0;
+        final int countPage = (int)Math.ceil(apartmentCalendarRepository.clientBookingHistoryCount(user.getId()) / 1);
+        List<ApartmentCalendar> booking = apartmentCalendarRepository.findByUserId(user.getId(), PageRequest.of(pageNumber, 1, Sort.Direction.DESC, "id"));
+        model.addAttribute("booking", booking);
+        model.addAttribute("defaultAvatar", User.DEFAULT_AVATAR);
+        model.addAttribute("countPage", countPage);
+        model.addAttribute("current", pageNumber);
+
+        return "/apartment/clientBookingHistory";
+    }
 
     private List<LocalDate> getDatesBetween(LocalDate startDate, LocalDate endDate) {
 

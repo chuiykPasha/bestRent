@@ -35,6 +35,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/apartment-booking").hasAuthority("USER")
                     .antMatchers("/user-profile/{user}").permitAll()
                     .antMatchers("/my-advertisements/**").hasAuthority("LANDLORD")
+                    .antMatchers("/reserved/**").hasAuthority("USER")
                     .anyRequest().authenticated()
                 .and()
                     .formLogin()
