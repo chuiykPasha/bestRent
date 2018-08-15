@@ -329,9 +329,9 @@ public class ApartmentController {
         } else {
             List<ApartmentCalendar> beetwenDates = apartmentCalendarRepository.checkBetweenDates(apartmentId, Date.valueOf(dates[START_DATE]), Date.valueOf(dates[END_DATE]));
 
-            if(!beetwenDates.isEmpty()){
-                return "Sorry, these dates are reserved";
-            }
+            //if(!beetwenDates.isEmpty()){
+            //    return "Sorry, these dates are reserved";
+            //}
 
             int count = apartmentCalendarRepository.checkDates(apartmentId,
                     Date.valueOf(dates[START_DATE]),
