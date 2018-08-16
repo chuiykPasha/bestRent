@@ -35,4 +35,7 @@ public interface ApartmentCalendarRepository extends JpaRepository<ApartmentCale
 
     @Query("SELECT count(*) from ApartmentCalendar a WHERE a.apartment.id IN :apartmentsId")
     int ownerRentHistoryCount(@Param("apartmentsId") List<Integer> apartmentsId);
+
+    @Query("SELECT a FROM ApartmentCalendar  a WHERE a.apartment.id = :apartmentId AND a.arrival >= :arrive")
+    List<ApartmentCalendar> getFutureBooking(@Param("apartmentId") int apartmentId, @Param("arrive") Date arrive);
 }

@@ -11,7 +11,7 @@
 <body>
 <div layout:fragment="content">
     <div th:if="${apartments != null && !apartments.isEmpty()}" class="row mt-5">
-        <div th:each="apartment : ${apartments}" class="col-md-3">
+        <div th:each="apartment : ${apartments}" class="col-md-3 mt-2">
             <div th:id="'carousel' + ${apartment.getId()}" class="carousel slide" data-ride="carousel">
                 <ol class="carousel-indicators" th:if="${apartment.getImages().size() > 1}">
                     <th:block th:each="apartmentImage, index : ${apartment.getImages()}">
@@ -40,6 +40,10 @@
             <p th:text="${apartment.getLocation()}"></p>
             <p class="break-long-word" th:text="${apartment.getTitle()}"></p>
             <p th:text="${apartment.getPrice() + ' per day'}"></p>
+            <a style="width: 100%" class="btn btn-primary" href="#">Change Info</a>
+            <a style="width: 100%" class="btn btn-primary" th:href="@{/change-apartment-location/} + ${apartment.getId()}">Change Location</a>
+            <a style="width: 100%" class="btn btn-primary" href="#">Change Images</a>
+            <a style="width: 100%" class="btn btn-danger" href="#">Delete</a>
         </div>
 
         <hr>

@@ -70,7 +70,7 @@ public class PasswordForgotController {
         String url = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
         model.put("resetUrl", url + "/reset-password?token=" + token.getToken());
         mail.setModel(model);
-        emailService.sendEmail(mail);
+        emailService.sendEmail(mail, "email/email-template");
 
         return "redirect:/forgot-password?success";
     }

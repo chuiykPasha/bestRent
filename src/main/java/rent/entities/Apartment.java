@@ -24,6 +24,8 @@ public class Apartment implements Serializable {
     private int maxNumberOfGuests;
     @Column(length = 100)
     private String title;
+    private double latitude;
+    private double longitude;
 
     @ManyToOne
     @JoinColumn(name = "typeOfHouseId", nullable = false)
@@ -58,7 +60,9 @@ public class Apartment implements Serializable {
         this.id = id;
     }
 
-    public Apartment(String description, String location, float price, int maxNumberOfGuests, TypeOfHouse typeOfHouse, AvailableToGuest availableToGuest, Set<ApartmentComfort> apartmentComforts, String title, User user) {
+    public Apartment(String description, String location, float price, int maxNumberOfGuests, TypeOfHouse typeOfHouse,
+                     AvailableToGuest availableToGuest, Set<ApartmentComfort> apartmentComforts, String title, User user,
+                     double longitude, double latitude) {
         this.description = description;
         this.location = location;
         this.price = price;
@@ -68,6 +72,8 @@ public class Apartment implements Serializable {
         this.apartmentComforts = apartmentComforts;
         this.title = title;
         this.user = user;
+        this.longitude = longitude;
+        this.latitude = latitude;
 
     }
 
@@ -165,5 +171,21 @@ public class Apartment implements Serializable {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
     }
 }

@@ -30,7 +30,10 @@ import rent.entities.*;
 import rent.form.ApartmentImagesForm;
 import rent.form.ApartmentInfoForm;
 import rent.form.ApartmentLocationForm;
+import rent.form.ChangeApartmentLocationForm;
+import rent.model.Mail;
 import rent.repository.*;
+import rent.service.EmailService;
 import rent.service.UploadImageService;
 
 import javax.validation.Valid;
@@ -66,6 +69,8 @@ public class ApartmentController {
     private final String SHARED_ROOM = "Shared room";
     private final int REMOVE_FIRST_DATE = 0;
     private final int SIZE_HISTORY_IN_PAGE = 5;
+    @Autowired
+    private EmailService emailService;
 
     private ApartmentController() {
     }
@@ -216,7 +221,7 @@ public class ApartmentController {
         Apartment apartment = new Apartment(apartmentInfoForm.getDescription(), apartmentLocationForm.getLocation(), apartmentInfoForm.getPrice().floatValue(),
                 apartmentInfoForm.getMaxNumberOfGuests(),
                 new TypeOfHouse(apartmentInfoForm.getTypeOfHouseId(), null),
-                new AvailableToGuest(apartmentInfoForm.getAvailableToGuestId(), null), selectedComforts, apartmentInfoForm.getTitle(), user);
+                new AvailableToGuest(apartmentInfoForm.getAvailableToGuestId(), null), selectedComforts, apartmentInfoForm.getTitle(), user, apartmentLocationForm.getLongitude(), apartmentLocationForm.getLatitude());
 
         final int apartmentId = apartmentRepository.save(apartment).getId();
 
@@ -389,8 +394,7 @@ public class ApartmentController {
 
     @GetMapping("my-advertisements")
     public String showMyAdvertisements(@AuthenticationPrincipal User user, Model model) {
-        Hibernate.initialize(user.getApartments());
-        model.addAttribute("apartments", user.getApartments());
+        model.addAttribute("apartments", apartmentRepository.findByUserIdOrderByIdDesc(user.getId()));
         return "myAdvertisements";
     }
 
@@ -420,6 +424,55 @@ public class ApartmentController {
         model.addAttribute("current", pageNumber);
 
         return "/apartment/clientBookingHistory";
+    }
+
+    @GetMapping("/change-apartment-location/{apartment}")
+    public String changeApartmentLocation(Apartment apartment, ChangeApartmentLocationForm changeLocationForm, Model model){
+        changeLocationForm.setLocation(apartment.getLocation());
+        changeLocationForm.setLatitude(apartment.getLatitude());
+        changeLocationForm.setLongitude(apartment.getLongitude());
+        changeLocationForm.setApartmentId(apartment.getId());
+        model.addAttribute("changeLocationForm", changeLocationForm);
+        return "/apartment/changeLocation";
+    }
+
+    @PostMapping("/change-apartment-location")
+    public String changeApartmentLocationSave(@Valid ChangeApartmentLocationForm changeLocationForm, BindingResult result){
+        if(result.hasErrors()) {
+            return "/apartment/changeLocation";
+        }
+
+        Apartment changeApartment = apartmentRepository.getOne(changeLocationForm.getApartmentId());
+
+        if(!changeApartment.getCalendars().isEmpty()){
+            List<ApartmentCalendar> booking = apartmentCalendarRepository.getFutureBooking(changeLocationForm.getApartmentId(), java.sql.Date.valueOf(LocalDate.now()));
+            Set<String> uniqueUsersEmail = new HashSet<>();
+            for(ApartmentCalendar item : booking) {
+                if(uniqueUsersEmail.contains(item.getUser().getEmail())){
+                    continue;
+                }
+
+                Mail mail = new Mail();
+                mail.setFrom("best-rent.tk");
+                mail.setSubject("Booking address changed");
+                mail.setTo(item.getUser().getEmail());
+                Map<String, Object> model = new HashMap<>();
+                model.put("from", changeApartment.getLocation());
+                model.put("to", changeLocationForm.getLocation());
+                model.put("user", changeApartment.getUser());
+                model.put("signature", "https://best-rent.tk");
+                mail.setModel(model);
+                emailService.sendEmail(mail, "email/change-apartment-location");
+                uniqueUsersEmail.add(item.getUser().getEmail());
+            }
+        }
+
+        changeApartment.setLocation(changeLocationForm.getLocation());
+        changeApartment.setLatitude(changeLocationForm.getLatitude());
+        changeApartment.setLongitude(changeLocationForm.getLongitude());
+        apartmentRepository.save(changeApartment);
+
+        return "redirect:/my-advertisements";
     }
 
     private List<LocalDate> getDatesBetween(LocalDate startDate, LocalDate endDate) {

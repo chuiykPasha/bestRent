@@ -14,4 +14,6 @@ public interface ApartmentRepository extends JpaRepository<Apartment, Integer> {
 
     @Query(value = "SELECT count(*) FROM apartment WHERE MATCH (location) AGAINST(:location)", nativeQuery = true)
     int countPageByLocation(@Param("location") String location);
+
+    List<Apartment> findByUserIdOrderByIdDesc(int userId);
 }
