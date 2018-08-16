@@ -13,6 +13,8 @@ public class TypeOfHouse implements Serializable {
     private Integer id;
     @Column(nullable = false)
     private String name;
+    @Column
+    private boolean isActive;
     @OneToMany(mappedBy = "typeOfHouse", fetch = FetchType.LAZY)
     private Set<Apartment> apartments = new HashSet<>();
 
@@ -20,11 +22,13 @@ public class TypeOfHouse implements Serializable {
 
     public TypeOfHouse(String name) {
         this.name = name;
+        this.isActive = true;
     }
 
     public TypeOfHouse(Integer id, String name) {
         this.id = id;
         this.name = name;
+        this.isActive = true;
     }
 
     public Integer getId() {
@@ -49,5 +53,13 @@ public class TypeOfHouse implements Serializable {
 
     public void setApartments(Set<Apartment> apartments) {
         this.apartments = apartments;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
     }
 }

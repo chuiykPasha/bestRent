@@ -159,9 +159,9 @@ public class ApartmentController {
     @GetMapping("/apartment-create-step-one")
     public String fillApartmentInfo(Model model){
         ApartmentInfoForm apartmentInfoForm = new ApartmentInfoForm();
-        apartmentInfoForm.setComforts(apartmentComfortRepository.findAll());
-        apartmentInfoForm.setTypeOfHouses(typeOfHouseRepository.findAll());
-        apartmentInfoForm.setAvailableToGuests(availableToGuestRepository.findAll());
+        apartmentInfoForm.setComforts(apartmentComfortRepository.findByIsActiveTrue());
+        apartmentInfoForm.setTypeOfHouses(typeOfHouseRepository.findByIsActiveTrue());
+        apartmentInfoForm.setAvailableToGuests(availableToGuestRepository.findByIsActiveTrue());
         model.addAttribute("apartmentInfoForm", apartmentInfoForm);
 
         return "/apartment/createStepOne";

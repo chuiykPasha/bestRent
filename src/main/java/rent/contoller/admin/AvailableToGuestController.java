@@ -35,7 +35,7 @@ public class AvailableToGuestController {
             return "/admin/availableToGuest/create";
         }
 
-        AvailableToGuest availableToGuest = availableToGuestRepository.findByName(availableToGuestForm.getName());
+        AvailableToGuest availableToGuest = availableToGuestRepository.findByNameAndIsActiveTrue(availableToGuestForm.getName());
 
         if(availableToGuest != null) {
             bindingResult.rejectValue("name", null, "Name already exists");
@@ -58,7 +58,7 @@ public class AvailableToGuestController {
             return "/admin/availableToGuest/update";
         }
 
-        AvailableToGuest update = availableToGuestRepository.findByName(availableToGuestForm.getName());
+        AvailableToGuest update = availableToGuestRepository.findByNameAndIsActiveTrue(availableToGuestForm.getName());
 
         if(update != null) {
             bindingResult.rejectValue("name", null, "Name already exists");
@@ -77,9 +77,14 @@ public class AvailableToGuestController {
     }
 
     @PostMapping("/available-to-guest/delete")
-    public String delete(AvailableToGuestForm availableToGuestForm) {
+    public String delete(AvailableToGuestForm availableToGuestForm, Model model) {
         if(availableToGuestForm.getId() != null) {
-            availableToGuestRepository.deleteById(availableToGuestForm.getId());
+            AvailableToGuest find = availableToGuestRepository.getOne(availableToGuestForm.getId());
+
+            if(!find.getApartments().isEmpty()){
+                model.addAttribute("error", "You can't delete this because this value is used in other advertisements");
+                return "/admin/availableToGuest/confirmDelete";
+            }
         }
 
         return "redirect:/admin/available-to-guest";

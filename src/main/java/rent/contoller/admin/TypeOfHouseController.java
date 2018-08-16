@@ -36,7 +36,7 @@ public class TypeOfHouseController {
             return "/admin/typeOfHouse/create";
         }
 
-        TypeOfHouse typeOfHouse = typeOfHouseRepository.findByName(typeOfHouseForm.getName());
+        TypeOfHouse typeOfHouse = typeOfHouseRepository.findByNameAndIsActiveTrue(typeOfHouseForm.getName());
 
         if(typeOfHouse != null) {
             result.rejectValue("name", null, "Name already exists");
@@ -59,7 +59,7 @@ public class TypeOfHouseController {
             return "/admin/typeOfHouse/update";
         }
 
-        TypeOfHouse typeOfHouse = typeOfHouseRepository.findByName(typeOfHouseForm.getName());
+        TypeOfHouse typeOfHouse = typeOfHouseRepository.findByNameAndIsActiveTrue(typeOfHouseForm.getName());
 
         if(typeOfHouse != null) {
             result.rejectValue("name", null, "Name already exists");
@@ -78,9 +78,14 @@ public class TypeOfHouseController {
     }
 
     @PostMapping("/type-of-house/delete")
-    public String delete(TypeOfHouseForm typeOfHouseForm) {
+    public String delete(TypeOfHouseForm typeOfHouseForm, Model model) {
         if(typeOfHouseForm.getId() != null) {
-            typeOfHouseRepository.deleteById(typeOfHouseForm.getId());
+            TypeOfHouse find = typeOfHouseRepository.getOne(typeOfHouseForm.getId());
+
+            if(!find.getApartments().isEmpty()){
+                model.addAttribute("error", "You can't delete this because this value is used in other advertisements");
+                return "/admin/typeOfHouse/confirmDelete";
+            }
         }
 
         return "redirect:/admin/type-of-house";

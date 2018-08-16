@@ -18,6 +18,8 @@ public class AvailableToGuest implements Serializable {
     private Integer id;
     @Column(nullable = false)
     private String name;
+    @Column
+    private boolean isActive;
 
     @OneToMany(mappedBy = "availableToGuest", fetch = FetchType.LAZY)
     private Set<Apartment> apartments;
@@ -26,11 +28,13 @@ public class AvailableToGuest implements Serializable {
 
     public AvailableToGuest(String name) {
         this.name = name;
+        this.isActive = true;
     }
 
     public AvailableToGuest(Integer id, String name) {
         this.id = id;
         this.name = name;
+        this.isActive = true;
     }
 
     public Integer getId() {
@@ -55,5 +59,13 @@ public class AvailableToGuest implements Serializable {
 
     public void setApartments(Set<Apartment> apartments) {
         this.apartments = apartments;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
     }
 }

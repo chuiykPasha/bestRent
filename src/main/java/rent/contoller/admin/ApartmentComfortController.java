@@ -34,7 +34,7 @@ public class ApartmentComfortController {
             return "/admin/apartmentComfort/create";
         }
 
-        ApartmentComfort apartmentComfort = apartmentComfortRepository.findByName(apartmentComfortForm.getName());
+        ApartmentComfort apartmentComfort = apartmentComfortRepository.findByNameAndIsActiveTrue(apartmentComfortForm.getName());
 
         if(apartmentComfort != null) {
             result.rejectValue("name", null, "Name already exists");
@@ -58,7 +58,7 @@ public class ApartmentComfortController {
             return "/admin/apartmentComfort/update";
         }
 
-        ApartmentComfort apartmentComfort = apartmentComfortRepository.findByName(apartmentComfortForm.getName());
+        ApartmentComfort apartmentComfort = apartmentComfortRepository.findByNameAndIsActiveTrue(apartmentComfortForm.getName());
 
         if(apartmentComfort != null) {
             result.rejectValue("name", null, "Name already exists");
@@ -76,9 +76,17 @@ public class ApartmentComfortController {
     }
 
     @PostMapping("/apartment-comfort/delete")
-    public String delete(ApartmentComfortForm apartmentComfortForm) {
+    public String delete(ApartmentComfortForm apartmentComfortForm, Model model) {
         if(apartmentComfortForm.getId() != null) {
-            apartmentComfortRepository.deleteById(apartmentComfortForm.getId());
+            ApartmentComfort find = apartmentComfortRepository.getOne(apartmentComfortForm.getId());
+
+            if (!find.getApartments().isEmpty()) {
+                model.addAttribute("error", "You can't delete this because this value is used in other advertisements");
+                return "/admin/apartmentComfort/confirmDelete";
+            }
+
+            find.setActive(false);
+            apartmentComfortRepository.save(find);
         }
 
         return "redirect:/admin/apartment-comfort";

@@ -16,10 +16,10 @@
         </tr>
         </thead>
         <tbody>
-        <tr th:each="typeOfHouse : ${typeOfHouses}">
+        <tr th:each="typeOfHouse : ${typeOfHouses}" th:if="${typeOfHouse.isActive()}">
             <td th:text="${typeOfHouse.name}"></td>
             <td><a th:href="@{/admin/type-of-house/update/} + ${typeOfHouse.id}">Edit</a></td>
-            <td><a th:href="@{/admin/type-of-house/delete/} + ${typeOfHouse.id}">Delete</a></td>
+            <td><a th:if="${typeOfHouse.getApartments().isEmpty()}" th:href="@{/admin/type-of-house/delete/} + ${typeOfHouse.id}">Delete</a></td>
         </tr>
         </tbody>
     </table>
