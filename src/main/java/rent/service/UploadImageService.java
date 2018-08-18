@@ -23,8 +23,7 @@ import rent.repository.UserRepository;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class UploadImageService {
@@ -93,7 +92,7 @@ public class UploadImageService {
         return user.getAvatarUrl();
     }
 
-    public void uploadApartmentImages(List<String> images, String userName, int apartmentId) {
+    public void uploadApartmentImages(List<String> images, String userName, int apartmentId, List<Double> sizeInBytes) {
         for (int i = 0; i < images.size(); i++) {
             String[] data = images.get(i).split(",");
             String img;
@@ -102,11 +101,45 @@ public class UploadImageService {
                 img = data[1];
             } else {
                 img = images.get(1);
-                new Thread(new UploadImage(img, userName, apartmentId)).start();
+                new Thread(new UploadImage(img, userName, apartmentId, sizeInBytes.get(i))).start();
                 break;
             }
 
-            new Thread(new UploadImage(img, userName, apartmentId)).start();
+            new Thread(new UploadImage(img, userName, apartmentId, sizeInBytes.get(i))).start();
+        }
+    }
+
+    public void changeApartmentImages(List<String> images, String userName, int apartmentId, List<Double> sizeInBytes){
+        Set<String> saveImagesLink = new HashSet<>();
+        for (int i = 0; i < images.size(); i++) {
+            String[] data = images.get(i).split(",");
+            String img;
+
+            if (data.length == 2) {
+                img = data[1];
+            } else {
+                if(data[0].contains("https")){
+                    saveImagesLink.add(data[0]);
+                    continue;
+                }
+
+                img = images.get(1);
+                new Thread(new UploadImage(img, userName, apartmentId, sizeInBytes.get(i))).start();
+                break;
+            }
+
+            new Thread(new UploadImage(img, userName, apartmentId, sizeInBytes.get(i))).start();
+        }
+
+        for(ApartmentImage image : apartmentImageRepository.findByApartmentId(apartmentId)){
+            if(!saveImagesLink.contains(image.getLinkPhoto())){
+                try {
+                    client.files().deleteV2(image.getPathPhoto());
+                    apartmentImageRepository.delete(image);
+                } catch (DbxException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -114,11 +147,13 @@ public class UploadImageService {
         private String imgBase64;
         private String userEmail;
         private int apartmentId;
+        private double sizeInBytes;
 
-        UploadImage(String imgBase64, String userEmail, int apartmentId) {
+        UploadImage(String imgBase64, String userEmail, int apartmentId, double sizeInBytes) {
             this.imgBase64 = imgBase64;
             this.userEmail = userEmail;
             this.apartmentId = apartmentId;
+            this.sizeInBytes = sizeInBytes;
         }
 
         public void run() {
@@ -142,7 +177,7 @@ public class UploadImageService {
 
                 SharedLinkMetadata slm = client.sharing().createSharedLinkWithSettings(filePath, SharedLinkSettings.newBuilder().withRequestedVisibility(RequestedVisibility.PUBLIC).build());
                 String url = slm.getUrl();
-                apartmentImageRepository.save(new ApartmentImage(filePath, getDlUriToDropBoxImage(url), new Apartment(apartmentId)));
+                apartmentImageRepository.save(new ApartmentImage(filePath, getDlUriToDropBoxImage(url), new Apartment(apartmentId), sizeInBytes));
                 firstImageUploaded = true;
             } catch (DbxException e) {
                 e.printStackTrace();

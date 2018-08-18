@@ -22,12 +22,15 @@ public class ApartmentImage implements Serializable {
     @JoinColumn(name = "apartmentId", nullable = false)
     private Apartment apartment;
 
+    private double sizeInBites;
+
     public ApartmentImage() {}
 
-    public ApartmentImage(String pathPhoto, String linkPhoto, Apartment apartment) {
+    public ApartmentImage(String pathPhoto, String linkPhoto, Apartment apartment, double sizeInBites) {
         this.pathPhoto = pathPhoto;
         this.linkPhoto = linkPhoto;
         this.apartment = apartment;
+        this.sizeInBites = sizeInBites;
     }
 
     public Integer getId() {
@@ -60,5 +63,13 @@ public class ApartmentImage implements Serializable {
 
     public void setApartment(Apartment apartment) {
         this.apartment = apartment;
+    }
+
+    public double getSizeInBites() {
+        return sizeInBites;
+    }
+
+    public void setSizeInBites(double sizeInBites) {
+        this.sizeInBites = sizeInBites;
     }
 }

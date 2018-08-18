@@ -42,7 +42,7 @@
             <p th:text="${apartment.getPrice() + ' per day'}"></p>
             <a style="width: 100%" class="btn btn-primary" href="#">Change Info</a>
             <a style="width: 100%" class="btn btn-primary" th:href="@{/change-apartment-location/} + ${apartment.getId()}">Change Location</a>
-            <a style="width: 100%" class="btn btn-primary" href="#">Change Images</a>
+            <a style="width: 100%" class="btn btn-primary" th:href="@{/change-apartment-images/} + ${apartment.getId()}">Change Images</a>
             <a style="width: 100%" class="btn btn-danger" href="#">Delete</a>
         </div>
 

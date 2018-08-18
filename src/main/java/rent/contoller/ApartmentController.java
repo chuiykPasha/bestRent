@@ -27,10 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import rent.entities.*;
-import rent.form.ApartmentImagesForm;
-import rent.form.ApartmentInfoForm;
-import rent.form.ApartmentLocationForm;
-import rent.form.ChangeApartmentLocationForm;
+import rent.form.*;
 import rent.model.Mail;
 import rent.repository.*;
 import rent.service.EmailService;
@@ -225,7 +222,7 @@ public class ApartmentController {
 
         final int apartmentId = apartmentRepository.save(apartment).getId();
 
-        uploadImageService.uploadApartmentImages(apartmentImagesForm.getImages(), userDetails.getUsername(), apartmentId);
+        uploadImageService.uploadApartmentImages(apartmentImagesForm.getImages(), userDetails.getUsername(), apartmentId, apartmentImagesForm.getImagesSize());
         sessionStatus.setComplete();
 
         while (true) {
@@ -472,6 +469,27 @@ public class ApartmentController {
         changeApartment.setLongitude(changeLocationForm.getLongitude());
         apartmentRepository.save(changeApartment);
 
+        return "redirect:/my-advertisements";
+    }
+
+    @GetMapping("/change-apartment-images/{apartment}")
+    public String changeApartmentImages(Apartment apartment, ChangeApartmentImagesForm changeApartmentImagesForm, Model model) {
+        changeApartmentImagesForm.setApartmentId(apartment.getId());
+        model.addAttribute("changeApartmentImagesForm", changeApartmentImagesForm);
+        model.addAttribute("images", apartment.getImages());
+        return "/apartment/changeApartmentImages";
+    }
+
+    @PostMapping("/change-apartment-images")
+    public String changeApartmentImagesSave(@Valid ChangeApartmentImagesForm changeApartmentImagesForm, BindingResult result, @AuthenticationPrincipal User user, Model model){
+        if(changeApartmentImagesForm.getImages().isEmpty()){
+            model.addAttribute("changeApartmentImagesForm", changeApartmentImagesForm);
+            model.addAttribute("images", apartmentRepository.getOne(changeApartmentImagesForm.getApartmentId()));
+
+            return "/apartment/changeApartmentImages";
+        }
+
+        uploadImageService.changeApartmentImages(changeApartmentImagesForm.getImages(), user.getEmail() ,changeApartmentImagesForm.getApartmentId(), changeApartmentImagesForm.getImagesSize());
         return "redirect:/my-advertisements";
     }
 
