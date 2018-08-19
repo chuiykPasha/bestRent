@@ -29,6 +29,9 @@ public class ApartmentInfoForm implements Serializable{
     private List<TypeOfHouse> typeOfHouses;
     private List<AvailableToGuest> availableToGuests;
     private List<ApartmentComfort> comforts;
+    private int numberOfRooms = 1;
+
+    private List<Integer> guestsInRoom;
 
     public Integer getId() {
         return id;
@@ -116,5 +119,21 @@ public class ApartmentInfoForm implements Serializable{
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public int getNumberOfRooms() {
+        return numberOfRooms;
+    }
+
+    public void setNumberOfRooms(int numberOfRooms) {
+        this.numberOfRooms = numberOfRooms;
+    }
+
+    public List<Integer> getGuestsInRoom() {
+        return guestsInRoom;
+    }
+
+    public void setGuestsInRoom(List<Integer> guestsInRoom) {
+        this.guestsInRoom = guestsInRoom;
     }
 }

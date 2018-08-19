@@ -6,7 +6,7 @@
 <body>
 <div layout:fragment="content">
     <h1>Create Step one</h1>
-    <form th:action="@{/apartment-create-step-one}" th:object="${apartmentInfoForm}" method="post">
+    <form th:action="@{/apartment-create-step-one}" th:object="${apartmentInfoForm}" method="post" id="form">
         <div class="row">
             <div class="col-12">
                 <div class="row">
@@ -34,6 +34,30 @@
                            th:errors="*{maxNumberOfGuests}"></p>
                     </div>
                 </div>
+            </div>
+            <div class="col-12">
+                <div class="row">
+                    <div class="col-4 form-group">
+                        <label for="numberOfRooms">Number of Rooms</label>
+                        <input th:value="${apartmentInfoForm.numberOfRooms}" th:field="*{numberOfRooms}" class="form-control" id="numberOfRooms" value="1"
+                               min="1"
+                               max="16" type="number"/>
+                        <p class="alert alert-danger mt-2" role="alert"
+                           th:if="${#fields.hasErrors('numberOfRooms')}"
+                           th:errors="*{numberOfRooms}"></p>
+                    </div>
+
+                    <div class="col-8" id="roomsInfoBlock" style="display: none">
+                        <h2 class="text-center">Set number of Guest in rooms</h2>
+                        <div class="row justify-content-center" id="rooms">
+
+                        </div>
+                    </div>
+
+                </div>
+
+                <p th:if="${#fields.hasErrors('guestsInRoom')}" th:errors="*{guestsInRoom}" class="alert alert-danger mt-2" role="alert">Maximum number of guests and guests in the room.</p>
+                <p style="display: none" id="guestsInRoomsError" class="alert alert-danger mt-2" role="alert">Maximum number of guests and guests in the room.</p>
             </div>
             <div class="col-12">
                 <div class="form-group">
@@ -75,11 +99,81 @@
             <button class="btn btn-primary" type="submit">next</button>
         </div>
     </form>
+    <template id="templateRoom">
+        <div class="col-4 form-group">
+            <label>Number of guests</label>
+            <input name="guestsInRoom"
+                   class="form-control" value="1"
+                   min="1"
+                   max="16" type="number"/>
+        </div>
+    </template>
     <script type="text/javascript" th:src="@{/js/chosen.jquery.js}"></script>
-    <script>
+    <script th:inline="javascript">
         $(document).ready(function(){
             $('.chosen-select').chosen();
             $('chosen-select-deselect').chosen({ allow_single_deselect: true });
+
+            const form = document.getElementById('form');
+            const guestsInRoomsError = document.getElementById('guestsInRoomsError');
+            const roomsBlock = document.getElementById('rooms');
+            var maxNumberOfGuests = document.getElementById('maxNumberOfGuests');
+            const templateRoom = document.getElementById('templateRoom');
+            const numberOfRooms = document.getElementById('numberOfRooms');
+            const roomsInfoBlock = document.getElementById('roomsInfoBlock');
+
+            console.log(templateRoom);
+
+
+            form.addEventListener('submit', function (e) {
+                if(availableToGuestInput.value == privateRoom) {
+                    var rooms = document.getElementsByName('guestsInRoom');
+                    var countGuestsInRooms = 0;
+
+                    for (var i = 0; i < rooms.length; i++) {
+                        countGuestsInRooms += parseInt(rooms[i].value);
+                    }
+
+                    if (countGuestsInRooms != maxNumberOfGuests.value) {
+                        guestsInRoomsError.style = 'displey: block';
+                        event.preventDefault();
+                    }
+                }
+            });
+
+            numberOfRooms.addEventListener('change' , showRooms);
+
+            var privateRoom = /*[[${privateRoomId}]]*/ "default";
+
+            var availableToGuestInput = document.getElementById('availableToGuest');
+
+            availableToGuestInput.addEventListener('change', checkAvailableToGuests);
+
+            function showRooms() {
+                rooms.innerHTML = '';
+
+                for(var i = 0; i < numberOfRooms.value; i++){
+                    roomsBlock.appendChild(templateRoom.content.cloneNode(true));
+                    console.log(templateRoom);
+                }
+            }
+
+            function checkAvailableToGuests() {
+                if(availableToGuestInput.value == privateRoom){
+                    roomsInfoBlock.style = 'display: block';
+                    showRooms();
+                } else {
+                    roomsInfoBlock.style = 'display: none';
+                    rooms.innerHTML = '';
+                }
+            }
+
+            console.log(privateRoom);
+
+            if(availableToGuestInput.value == privateRoom){
+                roomsInfoBlock.style = 'display: block';
+                showRooms();
+            }
         })
     </script>
 </div>

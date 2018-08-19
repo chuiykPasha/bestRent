@@ -85,6 +85,9 @@ public class AvailableToGuestController {
                 model.addAttribute("error", "You can't delete this because this value is used in other advertisements");
                 return "/admin/availableToGuest/confirmDelete";
             }
+
+            find.setActive(false);
+            availableToGuestRepository.save(find);
         }
 
         return "redirect:/admin/available-to-guest";

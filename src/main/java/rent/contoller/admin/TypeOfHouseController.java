@@ -86,6 +86,9 @@ public class TypeOfHouseController {
                 model.addAttribute("error", "You can't delete this because this value is used in other advertisements");
                 return "/admin/typeOfHouse/confirmDelete";
             }
+
+            find.setActive(false);
+            typeOfHouseRepository.save(find);
         }
 
         return "redirect:/admin/type-of-house";

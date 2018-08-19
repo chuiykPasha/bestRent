@@ -33,6 +33,7 @@ import rent.repository.*;
 import rent.service.EmailService;
 import rent.service.UploadImageService;
 
+import javax.sound.sampled.Line;
 import javax.validation.Valid;
 import java.io.*;
 import java.math.BigDecimal;
@@ -68,6 +69,8 @@ public class ApartmentController {
     private final int SIZE_HISTORY_IN_PAGE = 5;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private RoomRepository roomRepository;
 
     private ApartmentController() {
     }
@@ -165,14 +168,33 @@ public class ApartmentController {
         apartmentInfoForm.setTypeOfHouses(typeOfHouseRepository.findByIsActiveTrue());
         apartmentInfoForm.setAvailableToGuests(availableToGuestRepository.findByIsActiveTrue());
         model.addAttribute("apartmentInfoForm", apartmentInfoForm);
+        model.addAttribute("privateRoomId", availableToGuestRepository.findByNameAndIsActiveTrue("Private room").getId());
 
         return "/apartment/createStepOne";
     }
 
     @PostMapping("/apartment-create-step-one")
-    public String moveStepTwo(@Valid ApartmentInfoForm apartmentInfoForm, BindingResult result) {
+    public String moveStepTwo(@Valid ApartmentInfoForm apartmentInfoForm, BindingResult result, Model model) {
         if(result.hasErrors()) {
             return "/apartment/createStepOne";
+        }
+
+        int privateRoomId = availableToGuestRepository.findByNameAndIsActiveTrue("Private room").getId();
+
+        if(apartmentInfoForm.getNumberOfRooms() > apartmentInfoForm.getMaxNumberOfGuests()){
+            result.rejectValue("maxNumberOfGuests", null, "Check the maximum number of guests");
+            model.addAttribute("privateRoomId", privateRoomId);
+            return "/apartment/createStepOne";
+        }
+
+        if(apartmentInfoForm.getAvailableToGuestId() == privateRoomId){
+            int countGuestsInRooms = apartmentInfoForm.getGuestsInRoom().stream().mapToInt(i -> i).sum();
+
+            if(countGuestsInRooms != apartmentInfoForm.getMaxNumberOfGuests()){
+                result.rejectValue("guestsInRoom", null, "Maximum number of guests and guests in the room.");
+                model.addAttribute("privateRoomId", privateRoomId);
+                return "/apartment/createStepOne";
+            }
         }
 
         return "redirect:/apartment-create-step-two";
@@ -218,7 +240,8 @@ public class ApartmentController {
         Apartment apartment = new Apartment(apartmentInfoForm.getDescription(), apartmentLocationForm.getLocation(), apartmentInfoForm.getPrice().floatValue(),
                 apartmentInfoForm.getMaxNumberOfGuests(),
                 new TypeOfHouse(apartmentInfoForm.getTypeOfHouseId(), null),
-                new AvailableToGuest(apartmentInfoForm.getAvailableToGuestId(), null), selectedComforts, apartmentInfoForm.getTitle(), user, apartmentLocationForm.getLongitude(), apartmentLocationForm.getLatitude());
+                new AvailableToGuest(apartmentInfoForm.getAvailableToGuestId(), null), selectedComforts, apartmentInfoForm.getTitle(), user,
+                    apartmentLocationForm.getLongitude(), apartmentLocationForm.getLatitude(), apartmentInfoForm.getNumberOfRooms());
 
         final int apartmentId = apartmentRepository.save(apartment).getId();
 
@@ -234,6 +257,16 @@ public class ApartmentController {
         if(!user.getRoles().contains(Role.LANDLORD)) {
             user.getRoles().add(Role.LANDLORD);
             userRepository.save(user);
+        }
+
+        if(apartmentInfoForm.getAvailableToGuestId() == availableToGuestRepository.findByNameAndIsActiveTrue("Private room").getId()){
+            List<Room> rooms = new ArrayList<>();
+
+            for(int guestsInRoom: apartmentInfoForm.getGuestsInRoom()){
+                rooms.add(new Room(guestsInRoom, new Apartment(apartmentId)));
+            }
+
+            roomRepository.saveAll(rooms);
         }
 
         addNewUserRoleInSession(Role.LANDLORD);

@@ -54,6 +54,11 @@ public class Apartment implements Serializable {
     @JoinColumn(name = "userId", nullable = false)
     private User user;
 
+    private int numberOfRooms;
+
+    @OneToMany(mappedBy = "apartment")
+    private Set<Room> rooms = new HashSet<>();
+
     public Apartment() {}
 
     public Apartment(Integer id) {
@@ -62,7 +67,7 @@ public class Apartment implements Serializable {
 
     public Apartment(String description, String location, float price, int maxNumberOfGuests, TypeOfHouse typeOfHouse,
                      AvailableToGuest availableToGuest, Set<ApartmentComfort> apartmentComforts, String title, User user,
-                     double longitude, double latitude) {
+                     double longitude, double latitude, int numberOfRooms) {
         this.description = description;
         this.location = location;
         this.price = price;
@@ -74,7 +79,7 @@ public class Apartment implements Serializable {
         this.user = user;
         this.longitude = longitude;
         this.latitude = latitude;
-
+        this.numberOfRooms = numberOfRooms;
     }
 
     public Integer getId() {
@@ -187,5 +192,21 @@ public class Apartment implements Serializable {
 
     public void setLongitude(double longitude) {
         this.longitude = longitude;
+    }
+
+    public int getNumberOfRooms() {
+        return numberOfRooms;
+    }
+
+    public void setNumberOfRooms(int numberOfRooms) {
+        this.numberOfRooms = numberOfRooms;
+    }
+
+    public Set<Room> getRooms() {
+        return rooms;
+    }
+
+    public void setRooms(Set<Room> rooms) {
+        this.rooms = rooms;
     }
 }
