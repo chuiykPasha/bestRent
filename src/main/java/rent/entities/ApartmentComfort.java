@@ -1,5 +1,7 @@
 package rent.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.HashSet;
@@ -16,6 +18,7 @@ public class ApartmentComfort implements Serializable {
     @Column
     private boolean isActive;
 
+    @JsonIgnore
     @ManyToMany(mappedBy = "apartmentComforts", fetch = FetchType.LAZY)
     private Set<Apartment> apartments;
 

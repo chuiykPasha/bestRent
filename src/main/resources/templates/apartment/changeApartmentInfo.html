@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/layout">
+<head>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap-chosen.css}">
+</head>
+<body>
+<div layout:fragment="content">
+    <h1 class="text-center">Create Step one</h1>
+    <form th:action="@{/change-apartment-info}" th:object="${changeApartmentInfoForm}" method="post" id="form">
+        <input type="hidden" th:value="${changeApartmentInfoForm.id}" name="id">
+        <div class="row">
+            <div class="col-12">
+                <div class="row justify-content-center">
+                    <div class="col-4 form-group">
+                        <label class="text-center" for="maxNumberOfGuests">Max number of guests</label>
+                        <input th:value="${changeApartmentInfoForm.maxNumberOfGuests}" th:field="*{maxNumberOfGuests}" class="form-control" id="maxNumberOfGuests" value="1"
+                               min="1"
+                               max="16" type="number"/>
+                        <p class="alert alert-danger mt-2" role="alert"
+                           th:if="${#fields.hasErrors('maxNumberOfGuests')}"
+                           th:errors="*{maxNumberOfGuests}"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="row">
+                    <div class="col-4 form-group">
+                        <label for="numberOfRooms">Number of Rooms</label>
+                        <input th:value="${changeApartmentInfoForm.numberOfRooms}" th:field="*{numberOfRooms}" class="form-control" id="numberOfRooms" value="1"
+                               min="1"
+                               max="16" type="number" readonly/>
+                        <p class="alert alert-danger mt-2" role="alert"
+                           th:if="${#fields.hasErrors('numberOfRooms')}"
+                           th:errors="*{numberOfRooms}"></p>
+                    </div>
+
+                    <div class="col-8" id="roomsInfoBlock" style="display: none;">
+                        <h2 class="text-center">Set number of Guest in rooms</h2>
+                        <div class="row justify-content-center" id="rooms">
+
+                        </div>
+                    </div>
+
+                </div>
+
+                <p th:if="${#fields.hasErrors('guestsInRoom')}" th:errors="*{guestsInRoom}" class="alert alert-danger mt-2" role="alert">Maximum number of guests and guests in the room.</p>
+                <p style="display: none" id="guestsInRoomsError" class="alert alert-danger mt-2" role="alert">Maximum number of guests and guests in the room.</p>
+            </div>
+            <div class="col-12">
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <textarea th:value="${changeApartmentInfoForm.title}" th:field="*{title}" class="form-control" id="title" rows="1"></textarea>
+                    <p class="alert alert-danger mt-2" role="alert"
+                       th:if="${#fields.hasErrors('title')}"
+                       th:errors="*{title}"></p>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea th:value="${changeApartmentInfoForm.description}" th:field="*{description}" class="form-control" id="description" rows="3"></textarea>
+                    <p class="alert alert-danger mt-2" role="alert"
+                       th:if="${#fields.hasErrors('description')}"
+                       th:errors="*{description}"></p>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="form-group">
+                    <label for="price">Price</label>
+                    <input th:value="${changeApartmentInfoForm.price}" th:field="*{price}" class="form-control" id="price"></input>
+                    <p class="alert alert-danger mt-2" role="alert"
+                       th:if="${#fields.hasErrors('price')}"
+                       th:errors="*{price}"></p>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="form-group">
+                    <label for="apartmentComforts">Apartment comforts</label>
+                    <select th:field="*{selectedComforts}" multiple="multiple" class="chosen-select form-control" id="apartmentComforts">
+                        <option th:each="comfort : ${changeApartmentInfoForm.comforts}" th:value="${comfort.id}" th:utext="${comfort.name}"></option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <button class="btn btn-primary" type="submit">Change</button>
+        </div>
+    </form>
+    <template id="templateRoom">
+        <div class="col-4 form-group">
+            <label>Number of guests</label>
+            <input name="guestsInRoom"
+                   class="form-control" value="1"
+                   min="1"
+                   max="16" type="number"/>
+        </div>
+    </template>
+    <script type="text/javascript" th:src="@{/js/chosen.jquery.js}"></script>
+    <script th:inline="javascript">
+        $(document).ready(function(){
+            $('.chosen-select').chosen();
+            $('chosen-select-deselect').chosen({ allow_single_deselect: true });
+
+            const form = document.getElementById('form');
+            const guestsInRoomsError = document.getElementById('guestsInRoomsError');
+            const roomsBlock = document.getElementById('rooms');
+            var maxNumberOfGuests = document.getElementById('maxNumberOfGuests');
+            const templateRoom = document.getElementById('templateRoom');
+            const numberOfRooms = document.getElementById('numberOfRooms');
+            const roomsInfoBlock = document.getElementById('roomsInfoBlock');
+
+            const guestsInRooms = /*[[${guestsInRooms}]]*/ 'default';
+            const availableToGuests = /*[[${availableToGuests}]]*/ 'default';
+            const selectedChosen = /*[[${selectedChosen}]]*/ 'default';
+
+
+            console.log(guestsInRooms);
+            console.log(selectedChosen);
+
+            var chosen = document.getElementById('apartmentComforts');
+
+            console.log(chosen);
+
+            for(var i = 0; i < selectedChosen.length; i++){
+                $("#apartmentComforts").val(selectedChosen[i].id).trigger('chosen:updated');
+            }
+
+
+            form.addEventListener('submit', function (e) {
+                if(availableToGuests == 'Private room') {
+                    var rooms = document.getElementsByName('guestsInRoom');
+                    var countGuestsInRooms = 0;
+
+                    for (var i = 0; i < rooms.length; i++) {
+                        countGuestsInRooms += parseInt(rooms[i].value);
+                    }
+
+                    if (countGuestsInRooms != maxNumberOfGuests.value) {
+                        guestsInRoomsError.style = 'displey: block';
+                        event.preventDefault();
+                    }
+                }
+            });
+
+            function showRooms() {
+                rooms.innerHTML = '';
+
+                for(var i = 0; i < numberOfRooms.value; i++){
+                    var roomInfo = templateRoom.content.cloneNode(true);
+                    roomInfo.childNodes[1].childNodes[3].value = guestsInRooms[i].maxNumberOfGuests;
+                    console.log( roomInfo.childNodes[1].childNodes[3]);
+                    roomsBlock.appendChild(roomInfo);
+                }
+            }
+
+
+            if(availableToGuests == 'Private room'){
+                roomsInfoBlock.style = 'display: block';
+                showRooms();
+            }
+        })
+    </script>
+</div>
+</body>
+</html>

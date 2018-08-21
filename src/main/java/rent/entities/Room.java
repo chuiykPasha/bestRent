@@ -1,15 +1,19 @@
 package rent.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "room")
-public class Room {
+public class Room implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private int maxNumberOfGuests;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "apartmentId", nullable = false)
     private Apartment apartment;

@@ -32,6 +32,7 @@ import rent.model.Mail;
 import rent.repository.*;
 import rent.service.EmailService;
 import rent.service.UploadImageService;
+import sun.awt.ModalityListener;
 
 import javax.sound.sampled.Line;
 import javax.validation.Valid;
@@ -523,6 +524,58 @@ public class ApartmentController {
         }
 
         uploadImageService.changeApartmentImages(changeApartmentImagesForm.getImages(), user.getEmail() ,changeApartmentImagesForm.getApartmentId(), changeApartmentImagesForm.getImagesSize());
+        return "redirect:/my-advertisements";
+    }
+
+    @GetMapping("/change-apartment-info/{apartment}")
+    public String changeApartmentInfo(Apartment apartment, Model model){
+        ChangeApartmentInfoForm changeApartmentInfoForm = new ChangeApartmentInfoForm(apartment.getId(), apartment.getDescription(), BigDecimal.valueOf(apartment.getPrice()),
+                apartment.getMaxNumberOfGuests(), apartment.getTitle() ,apartmentComfortRepository.findByIsActiveTrue(), apartment.getNumberOfRooms());
+
+        model.addAttribute("changeApartmentInfoForm", changeApartmentInfoForm);
+        model.addAttribute("selectedChosen", apartment.getApartmentComforts());
+
+        if(apartment.getAvailableToGuest().getName().equals("Private room")) {
+            model.addAttribute("guestsInRooms", apartment.getRooms());
+            model.addAttribute("availableToGuests", "Private room");
+        }
+
+        return "/apartment/changeApartmentInfo";
+    }
+
+    @PostMapping("/change-apartment-info")
+    public String changeApartmentInfoSave(@Valid ChangeApartmentInfoForm changeApartmentInfoForm, BindingResult bindingResult, Model model){
+        if(bindingResult.hasErrors()){
+            return "/apartment/changeApartmentInfo";
+        }
+
+        Apartment apartment = apartmentRepository.findById(changeApartmentInfoForm.getId()).get();
+
+        if(apartment.getAvailableToGuest().getName().equals("Private room") && changeApartmentInfoForm.getMaxNumberOfGuests() != apartment.getMaxNumberOfGuests()){
+            List<Room> rooms = roomRepository.findByApartmentId(changeApartmentInfoForm.getId());
+
+            for(int i = 0; i < changeApartmentInfoForm.getGuestsInRoom().size(); i++){
+                rooms.get(i).setMaxNumberOfGuests(changeApartmentInfoForm.getGuestsInRoom().get(i));
+            }
+
+            roomRepository.saveAll(rooms);
+        }
+
+        apartment.setMaxNumberOfGuests(changeApartmentInfoForm.getMaxNumberOfGuests());
+        apartment.setTitle(changeApartmentInfoForm.getTitle());
+        apartment.setDescription(changeApartmentInfoForm.getDescription());
+        apartment.setPrice(changeApartmentInfoForm.getPrice().floatValue());
+
+        apartment.getApartmentComforts().clear();
+        Set<ApartmentComfort> comforts = new HashSet<>();
+
+        for(int comfort : changeApartmentInfoForm.getSelectedComforts()){
+            comforts.add(new ApartmentComfort(comfort));
+        }
+
+        apartment.setApartmentComforts(comforts);
+        apartmentRepository.save(apartment);
+
         return "redirect:/my-advertisements";
     }
 

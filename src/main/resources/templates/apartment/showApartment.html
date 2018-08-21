@@ -60,7 +60,8 @@
                 <p class="break-long-word" th:text="${apartment.getTitle()}"></p>
                 <h5 th:text="'Max number of guests ' + ${apartment.getMaxNumberOfGuests()}"></h5>
                 <p class="break-long-word" th:text="${apartment.getDescription()}"></p>
-            <div class="row justify-content-center">
+                <p th:text="'Number of rooms' + ': '  + ${apartment.numberOfRooms}"></p>
+            <div class="row justify-content-center" th:if="${!apartment.getApartmentComforts().isEmpty()}">
                 <div class="col-4">
                     <h6 class="text-center">Comforts</h6>
                     <ul class="list-group list-group-flush" th:each="comfort : ${apartment.getApartmentComforts()}">
