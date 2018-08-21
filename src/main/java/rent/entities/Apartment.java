@@ -59,6 +59,8 @@ public class Apartment implements Serializable {
     @OneToMany(mappedBy = "apartment")
     private Set<Room> rooms = new HashSet<>();
 
+    private boolean isActive;
+
     public Apartment() {}
 
     public Apartment(Integer id) {
@@ -80,6 +82,7 @@ public class Apartment implements Serializable {
         this.longitude = longitude;
         this.latitude = latitude;
         this.numberOfRooms = numberOfRooms;
+        this.isActive = true;
     }
 
     public Integer getId() {
@@ -208,5 +211,13 @@ public class Apartment implements Serializable {
 
     public void setRooms(Set<Room> rooms) {
         this.rooms = rooms;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
     }
 }

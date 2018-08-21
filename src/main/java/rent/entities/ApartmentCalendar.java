@@ -29,6 +29,8 @@ public class ApartmentCalendar implements Serializable {
     @JoinColumn(name = "userId", nullable = false)
     private User user;
 
+    private boolean isCanceled;
+
     public ApartmentCalendar() {}
 
     public ApartmentCalendar(Date arrival, Date departure, Apartment apartment, boolean firstDayFree, boolean lastDayFree, int currentCountGuest, User user) {
@@ -39,6 +41,7 @@ public class ApartmentCalendar implements Serializable {
         this.lastDayFree = lastDayFree;
         this.currentCountGuest = currentCountGuest;
         this.user = user;
+        this.isCanceled = false;
     }
 
     public Integer getId() {
@@ -103,5 +106,13 @@ public class ApartmentCalendar implements Serializable {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public boolean isCanceled() {
+        return isCanceled;
+    }
+
+    public void setCanceled(boolean canceled) {
+        isCanceled = canceled;
     }
 }

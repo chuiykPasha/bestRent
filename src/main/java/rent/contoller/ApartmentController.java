@@ -88,8 +88,8 @@ public class ApartmentController {
             model.addAttribute("current", pageNumber);
         } else {
             int countPage = (int)Math.ceil(apartmentRepository.count() / (double)sizeApartmentsInPage);
-            Page<Apartment> apartments = apartmentRepository.findAll(PageRequest.of(pageNumber, sizeApartmentsInPage, Sort.Direction.DESC, "id"));
-            model.addAttribute("apartments", apartments.getContent());
+            List<Apartment> apartments = apartmentRepository.findByIsActiveTrue(PageRequest.of(pageNumber, sizeApartmentsInPage, Sort.Direction.DESC, "id"));
+            model.addAttribute("apartments", apartments);
             model.addAttribute("countPage", countPage);
             model.addAttribute("current", pageNumber);
             model.addAttribute("location", null);
@@ -425,7 +425,7 @@ public class ApartmentController {
 
     @GetMapping("my-advertisements")
     public String showMyAdvertisements(@AuthenticationPrincipal User user, Model model) {
-        model.addAttribute("apartments", apartmentRepository.findByUserIdOrderByIdDesc(user.getId()));
+        model.addAttribute("apartments", apartmentRepository.findByUserIdAndIsActiveTrueOrderByIdDesc(user.getId()));
         return "myAdvertisements";
     }
 
@@ -578,6 +578,61 @@ public class ApartmentController {
 
         return "redirect:/my-advertisements";
     }
+
+    @GetMapping("/delete-apartment/{apartment}")
+    public String deleteApartment(Apartment apartment, Model model){
+        DeleteApartmentForm deleteApartmentForm = new DeleteApartmentForm(apartment.getId());
+        model.addAttribute("apartment", apartment);
+        model.addAttribute("deleteApartmentForm", deleteApartmentForm);
+
+        return "/apartment/deleteApartment";
+    }
+
+    @PostMapping("/delete-apartment")
+    public String deleteApartmentConfirm(DeleteApartmentForm deleteApartmentForm){
+        Apartment apartment = apartmentRepository.findById(deleteApartmentForm.getApartmentId()).get();
+
+        if(apartment == null){
+            return "redirect:/my-advertisements";
+        }
+
+        Set<String> emailsUsers = new HashSet<>();
+        Set<ApartmentCalendar> canceled = new HashSet<>();
+
+        for(ApartmentCalendar apartmentCalendar : apartment.getCalendars()){
+            if(!emailsUsers.contains(apartmentCalendar.getUser().getEmail())){
+                emailsUsers.add(apartmentCalendar.getUser().getEmail());
+                canceled.add(apartmentCalendar);
+            }
+
+            apartmentCalendar.setCanceled(true);
+        }
+
+        Thread sendEmails = new Thread(){
+            public void run(){
+                for(ApartmentCalendar apartmentCalendar : canceled) {
+                    Mail mail = new Mail();
+                    mail.setFrom("best-rent.tk");
+                    mail.setSubject("Your reservation has been canceled");
+                    mail.setTo(apartmentCalendar.getUser().getEmail());
+                    Map<String, Object> model = new HashMap<>();
+                    model.put("address", apartmentCalendar.getApartment().getLocation());
+                    model.put("user", apartmentCalendar.getUser());
+                    model.put("signature", "https://best-rent.tk");
+                    mail.setModel(model);
+                    emailService.sendEmail(mail, "email/cancel-reservation");
+                }
+            }
+        };
+
+        sendEmails.start();
+
+        apartment.setActive(false);
+        apartmentRepository.save(apartment);
+
+        return "redirect:/my-advertisements";
+    }
+
 
     private List<LocalDate> getDatesBetween(LocalDate startDate, LocalDate endDate) {
 
