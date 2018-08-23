@@ -97,6 +97,7 @@
             var availableToGuest = /*[[${availableToGuest}]]*/ "default";
             var guestsInput = document.getElementById('guests');
             var maxNumberOfGuests = document.getElementById('maxNumberOfGuests');
+            var price = /*[[${price}]]*/ "default";
 
             var showMsg = document.getElementById("showErrorMsg");
 
@@ -128,7 +129,8 @@
                         apartmentId : apartmentId,
                         availableToGuest: availableToGuest,
                         guestsCount: guestsInput.value,
-                        maxNumberOfGuests: maxNumberOfGuests.value
+                        maxNumberOfGuests: maxNumberOfGuests.value,
+                        price: price
                     },
                     type : 'POST',
                     success : function(result) {

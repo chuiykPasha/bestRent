@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "room")
@@ -17,6 +19,9 @@ public class Room implements Serializable {
     @ManyToOne
     @JoinColumn(name = "apartmentId", nullable = false)
     private Apartment apartment;
+
+    @OneToMany(mappedBy = "room")
+    private Set<ApartmentCalendar> calendars = new HashSet<>();
 
     public Room(){}
 
@@ -52,5 +57,13 @@ public class Room implements Serializable {
 
     public void setApartment(Apartment apartment) {
         this.apartment = apartment;
+    }
+
+    public Set<ApartmentCalendar> getCalendars() {
+        return calendars;
+    }
+
+    public void setCalendars(Set<ApartmentCalendar> calendars) {
+        this.calendars = calendars;
     }
 }

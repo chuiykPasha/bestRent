@@ -106,6 +106,7 @@ public class ApartmentController {
         model.addAttribute("availableToGuest", apartment.getAvailableToGuest().getName());
         model.addAttribute("userOnPage", user != null? "userLogin" : "guest");
         model.addAttribute("userId", apartment.getUser().getId());
+        model.addAttribute("price", apartment.getPrice());
 
         List<LocalDate> dates = new ArrayList<>();
 
@@ -277,7 +278,9 @@ public class ApartmentController {
 
 
     @RequestMapping(value = "/apartment-booking", method = RequestMethod.POST, produces = "text/plain")
-    public @ResponseBody String apartmentBooking(@AuthenticationPrincipal User user, @RequestParam String bookingDates, @RequestParam int apartmentId, @RequestParam String availableToGuest, @RequestParam int guestsCount, @RequestParam int maxNumberOfGuests) {
+    public @ResponseBody String apartmentBooking(@AuthenticationPrincipal User user, @RequestParam String bookingDates, @RequestParam int apartmentId,
+                                                 @RequestParam String availableToGuest, @RequestParam int guestsCount, @RequestParam int maxNumberOfGuests,
+                                                 @RequestParam float price) {
         final int START_DATE = 0;
         final int END_DATE = 1;
 
@@ -359,7 +362,8 @@ public class ApartmentController {
                     true,
                     true,
                     guestsCount,
-                    user);
+                    user,
+                    price);
             apartmentCalendarRepository.save(apartmentCalendar);
             return "Reservation is successful";
         } else {
@@ -386,7 +390,8 @@ public class ApartmentController {
                             false,
                             true,
                             guestsCount,
-                            user);
+                            user,
+                            price);
                     apartmentCalendarRepository.save(apartmentCalendar);
                     return "Reservation is successful";
                 }
@@ -402,7 +407,8 @@ public class ApartmentController {
                             true,
                             false,
                             guestsCount,
-                            user);
+                            user,
+                            price);
                     apartmentCalendarRepository.save(apartmentCalendar);
                     return "Reservation is successful";
                 }
@@ -413,7 +419,8 @@ public class ApartmentController {
                         true,
                         true,
                         guestsCount,
-                        user);
+                        user,
+                        price);
                 apartmentCalendarRepository.save(apartmentCalendar);
             } else {
                 return "Sorry.These dates are not free";

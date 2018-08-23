@@ -30,7 +30,7 @@
             <p th:text="${item.getArrival()} + ' - ' + ${item.getDeparture()}" th:classappend="${item.isCanceled()} ? text : ''"></p>
             <p th:text="${item.getApartment().getLocation()}" th:classappend="${item.isCanceled()} ? text : ''"></p>
             <p th:text="${'Guests ' + item.getCurrentCountGuest()}" th:classappend="${item.isCanceled()} ? text : ''"></p>
-            <p th:text="${item.getApartment().getPrice()} + ' day'" th:classappend="${item.isCanceled()} ? text : ''"></p>
+            <p th:text="${item.getPrice()} + ' day'" th:classappend="${item.isCanceled()} ? text : ''"></p>
         </div>
     </div>
 

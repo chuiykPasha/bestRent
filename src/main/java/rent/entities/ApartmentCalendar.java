@@ -29,11 +29,17 @@ public class ApartmentCalendar implements Serializable {
     @JoinColumn(name = "userId", nullable = false)
     private User user;
 
+    @ManyToOne
+    @JoinColumn(name = "roomId")
+    private Room room;
+
     private boolean isCanceled;
+
+    private float price;
 
     public ApartmentCalendar() {}
 
-    public ApartmentCalendar(Date arrival, Date departure, Apartment apartment, boolean firstDayFree, boolean lastDayFree, int currentCountGuest, User user) {
+    public ApartmentCalendar(Date arrival, Date departure, Apartment apartment, boolean firstDayFree, boolean lastDayFree, int currentCountGuest, User user, float price) {
         this.arrival = arrival;
         this.departure = departure;
         this.apartment = apartment;
@@ -42,6 +48,20 @@ public class ApartmentCalendar implements Serializable {
         this.currentCountGuest = currentCountGuest;
         this.user = user;
         this.isCanceled = false;
+        this.price = price;
+    }
+
+    public ApartmentCalendar(Date arrival, Date departure, boolean firstDayFree, boolean lastDayFree, int currentCountGuest, Apartment apartment, User user, Room room, boolean isCanceled, float price) {
+        this.arrival = arrival;
+        this.departure = departure;
+        this.firstDayFree = firstDayFree;
+        this.lastDayFree = lastDayFree;
+        this.currentCountGuest = currentCountGuest;
+        this.apartment = apartment;
+        this.user = user;
+        this.room = room;
+        this.isCanceled = isCanceled;
+        this.price = price;
     }
 
     public Integer getId() {
@@ -114,5 +134,21 @@ public class ApartmentCalendar implements Serializable {
 
     public void setCanceled(boolean canceled) {
         isCanceled = canceled;
+    }
+
+    public Room getRoom() {
+        return room;
+    }
+
+    public void setRoom(Room room) {
+        this.room = room;
+    }
+
+    public float getPrice() {
+        return price;
+    }
+
+    public void setPrice(float price) {
+        this.price = price;
     }
 }
