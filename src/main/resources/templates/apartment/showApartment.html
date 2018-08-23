@@ -134,10 +134,15 @@
                     },
                     type : 'POST',
                     success : function(result) {
-                        showMsg.innerText = result;
-                        if(result == 'Reservation is successful') {
+                        showMsg.innerText = result.message;
+                        if(result.message == 'Reservation is successful') {
                             showMsg.classList.remove('alert-danger');
                             showMsg.classList.add('alert-success');
+
+                            datepicker.destroy();
+                            datepicker = new HotelDatepicker(input, {
+                                disabledDates: result.reservedDates,
+                            });
                         } else {
                             showMsg.classList.remove('alert-success');
                             showMsg.classList.add('alert-danger');

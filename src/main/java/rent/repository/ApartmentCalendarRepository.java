@@ -11,9 +11,6 @@ import java.sql.Date;
 import java.util.List;
 
 public interface ApartmentCalendarRepository extends JpaRepository<ApartmentCalendar, Integer> {
-    @Query("SELECT count(*) from ApartmentCalendar a WHERE a.apartment.id = :apartmentId AND a.arrival = :arrival AND a.departure = :departure")
-    int checkDates(@Param("apartmentId") int apartmentId, @Param("arrival") Date arrival, @Param("departure") Date departure);
-
     @Query("SELECT a from ApartmentCalendar a WHERE a.apartment.id = :apartmentId AND a.departure = :arrival AND a.firstDayFree = true")
     ApartmentCalendar isFirstDayFree(@Param("apartmentId") int apartmentId, @Param("arrival") Date arrival);
 
