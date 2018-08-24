@@ -30,6 +30,7 @@ import rent.entities.*;
 import rent.form.*;
 import rent.model.Booking;
 import rent.model.Mail;
+import rent.model.SharedRoomBookingDayInfo;
 import rent.repository.*;
 import rent.service.BookingService;
 import rent.service.EmailService;
@@ -118,6 +119,8 @@ public class ApartmentController {
 
         if (apartment.getAvailableToGuest().getName().equals(ENTIRE_ROOM)) {
             dates = bookingService.getBlockedDatesInEntireApartment(apartment.getCalendars());
+        } else if(apartment.getAvailableToGuest().getName().equals(SHARED_ROOM)){
+            dates = bookingService.getBlockedDatesInSharedRoom(apartment.getCalendars(), apartment.getMaxNumberOfGuests());
         }
 
         /*else {
@@ -309,12 +312,14 @@ public class ApartmentController {
                     apartmentCalendarRepository.save(betweenDates.get(0));
                     apartmentCalendarRepository.save(new ApartmentCalendar(startDate, endDate, new Apartment(apartmentId),
                             true, false, guestsCount, user, price));
+
                     return new Booking(bookingService.getBlockedDatesInEntireApartment(apartmentRepository.getOne(apartmentId).getCalendars()) ,"Reservation is successful");
                 } else if(betweenDates.get(0).isLastDayFree() && betweenDates.get(0).getDeparture().equals(startDate)){
                     betweenDates.get(0).setLastDayFree(false);
                     apartmentCalendarRepository.save(betweenDates.get(0));
                     apartmentCalendarRepository.save(new ApartmentCalendar(startDate, endDate, new Apartment(apartmentId),
                             false, true, guestsCount, user, price));
+
                     return new Booking(bookingService.getBlockedDatesInEntireApartment(apartmentRepository.getOne(apartmentId).getCalendars()) ,"Reservation is successful");
                 } else {
                     return new Booking("Sorry these dates reserved");
@@ -329,147 +334,71 @@ public class ApartmentController {
                 apartmentCalendarRepository.save(betweenDates.get(1));
                 apartmentCalendarRepository.save(new ApartmentCalendar(startDate, endDate, new Apartment(apartmentId),
                         false, false, guestsCount, user, price));
+
                 return new Booking(bookingService.getBlockedDatesInEntireApartment(apartmentRepository.getOne(apartmentId).getCalendars()) ,"Reservation is successful");
             }
 
             return new Booking("Sorry these dates reserved");
+        } else if (availableToGuest.equals(SHARED_ROOM)) {
+            boolean noPlaces = false;
+            List<ApartmentCalendar> betweenDates = apartmentCalendarRepository.checkBetweenDates(apartmentId, startDate, endDate);
+
+            if (betweenDates.isEmpty()) {
+                ApartmentCalendar apartmentCalendar = new ApartmentCalendar(startDate, endDate, new Apartment(apartmentId),
+                        true, true, guestsCount, user, price);
+                apartmentCalendarRepository.save(apartmentCalendar);
+
+                return new Booking(bookingService.getBlockedDatesInSharedRoom(apartmentRepository.getOne(apartmentId).getCalendars(), maxNumberOfGuests), "Reservation is successful");
+            }
+
+            Map<LocalDate, SharedRoomBookingDayInfo> daysInfo = new HashMap<>();
+
+            for (ApartmentCalendar day : betweenDates) {
+                List<LocalDate> fromArriveToDepartureDays = bookingService.getDatesFromArriveToDeparture(day.getArrival().toLocalDate()
+                        , day.getDeparture().toLocalDate());
+
+                for (LocalDate checkDate : fromArriveToDepartureDays) {
+                    if (daysInfo.containsKey(checkDate)) {
+                        if (checkDate.equals(day.getArrival().toLocalDate())) {
+                            daysInfo.get(checkDate).plusArriveGuests(day.getCurrentCountGuest());
+                        } else if (checkDate.equals(day.getDeparture().toLocalDate())) {
+                            daysInfo.get(checkDate).plusDepartureGuests(day.getCurrentCountGuest());
+                        } else {
+                            daysInfo.get(checkDate).plusCurrentGuests(day.getCurrentCountGuest());
+                        }
+                    } else {
+                        if (checkDate.equals(day.getArrival().toLocalDate())) {
+                            daysInfo.put(checkDate, new SharedRoomBookingDayInfo(0, day.getCurrentCountGuest(), 0));
+                        } else if (checkDate.equals(day.getDeparture().toLocalDate())) {
+                            daysInfo.put(checkDate, new SharedRoomBookingDayInfo(0, 0, day.getCurrentCountGuest()));
+                        } else {
+                            daysInfo.put(checkDate, new SharedRoomBookingDayInfo(day.getCurrentCountGuest(), 0, 0));
+                        }
+                    }
+                }
+            }
+
+            List<LocalDate> checkSpaces = bookingService.getDatesFromArriveToDeparture(startDate.toLocalDate(), endDate.toLocalDate());
+
+            for (LocalDate date : checkSpaces) {
+                if (daysInfo.containsKey(date)) {
+                    SharedRoomBookingDayInfo info = daysInfo.get(date);
+                    int freeSpaces = maxNumberOfGuests - info.getArriveGuests() - info.getCurrentGuests() + info.getDepartureGuests();
+
+                    if (freeSpaces < guestsCount) {
+                        return new Booking("Sorry these dates reserved");
+                    }
+                }
+            }
+
+
+            ApartmentCalendar apartmentCalendar = new ApartmentCalendar(startDate, endDate, new Apartment(apartmentId),
+                    true, true, guestsCount, user, price);
+            apartmentCalendarRepository.save(apartmentCalendar);
+            return new Booking(bookingService.getBlockedDatesInSharedRoom(apartmentRepository.getOne(apartmentId).getCalendars(), maxNumberOfGuests), "Reservation is successful");
         }
 
-
-        /*if(availableToGuest.equals(SHARED_ROOM)) {
-            boolean noPlaces = false;
-            List<ApartmentCalendar> testBetweenDates = apartmentCalendarRepository.checkBetweenDates(apartmentId, Date.valueOf(dates[START_DATE]), Date.valueOf(dates[END_DATE]));
-
-            int departureCount = 0;
-            int arrivalCOunt = 0;
-
-            for(ApartmentCalendar calendar : testBetweenDates) {
-                Date departureDate = calendar.getDeparture();
-                if(departureDate.equals(Date.valueOf(dates[START_DATE]))){
-                    departureCount += calendar.getCurrentCountGuest();
-                }
-
-                if(calendar.getArrival().equals(Date.valueOf(dates[START_DATE]))){
-                    arrivalCOunt += calendar.getCurrentCountGuest();
-                }
-            }
-
-            if((departureCount != 0 && departureCount < guestsCount) && arrivalCOunt < guestsCount){
-                return "Sorry no places";
-            }
-
-            Map<LocalDate, Integer> checkDates = new HashMap<>();
-
-            for(ApartmentCalendar calendar : testBetweenDates){
-                List<LocalDate> datesBetween = getDatesBetween(calendar.getArrival().toLocalDate(), calendar.getDeparture().toLocalDate());
-                datesBetween.add(calendar.getDeparture().toLocalDate());
-
-                for(LocalDate date : datesBetween) {
-                    if(date.equals(Date.valueOf(dates[START_DATE]).toLocalDate())){
-                        continue;
-                    }
-
-                    if(checkDates.containsKey(date)){
-                        int countDate = checkDates.get(date).intValue();
-                        checkDates.put(date, countDate + calendar.getCurrentCountGuest());
-                        continue;
-                    }
-
-                    checkDates.put(date, calendar.getCurrentCountGuest());
-                }
-            }
-
-            System.out.println(checkDates);
-
-            List<LocalDate> reservationDates = getDatesBetween(Date.valueOf(dates[START_DATE]).toLocalDate(), Date.valueOf(dates[END_DATE]).toLocalDate());
-            reservationDates.add(Date.valueOf(dates[END_DATE]).toLocalDate());
-
-
-            //fill blocket dates
-            for(Map.Entry<LocalDate, Integer> checkDate : checkDates.entrySet()){
-                for(LocalDate reservationDate : reservationDates) {
-                    if (checkDate.getKey().equals(reservationDate) && checkDate.getValue() == maxNumberOfGuests){
-                        noPlaces = true;
-                    }
-                }
-            }
-
-            if(noPlaces){
-                return "Sorry no places.";
-            }
-
-            ApartmentCalendar apartmentCalendar = new ApartmentCalendar(Date.valueOf(dates[START_DATE]),
-                    Date.valueOf(dates[END_DATE]),
-                    new Apartment(apartmentId),
-                    true,
-                    true,
-                    guestsCount,
-                    user,
-                    price);
-            apartmentCalendarRepository.save(apartmentCalendar);
-            return "Reservation is successful";
-        } else {
-            List<ApartmentCalendar> beetwenDates = apartmentCalendarRepository.checkBetweenDates(apartmentId, Date.valueOf(dates[START_DATE]), Date.valueOf(dates[END_DATE]));
-
-            //if(!beetwenDates.isEmpty()){
-            //    return "Sorry, these dates are reserved";
-            //}
-
-            int count = apartmentCalendarRepository.checkDates(apartmentId,
-                    Date.valueOf(dates[START_DATE]),
-                    Date.valueOf(dates[END_DATE]));
-
-            if(count == 0) {
-                ApartmentCalendar firstDay = apartmentCalendarRepository.isFirstDayFree(apartmentId, Date.valueOf(dates[START_DATE]));
-
-                if(firstDay != null) {
-
-                    firstDay.setFirstDayFree(false);
-                    apartmentCalendarRepository.save(firstDay);
-                    ApartmentCalendar apartmentCalendar = new ApartmentCalendar(Date.valueOf(dates[START_DATE]),
-                            Date.valueOf(dates[END_DATE]),
-                            new Apartment(apartmentId),
-                            false,
-                            true,
-                            guestsCount,
-                            user,
-                            price);
-                    apartmentCalendarRepository.save(apartmentCalendar);
-                    return "Reservation is successful";
-                }
-
-                ApartmentCalendar lastDay = apartmentCalendarRepository.isFirstDayFree(apartmentId, Date.valueOf(dates[END_DATE]));
-
-                if(lastDay != null){
-                    lastDay.setLastDayFree(false);
-                    apartmentCalendarRepository.save(lastDay);
-                    ApartmentCalendar apartmentCalendar = new ApartmentCalendar(Date.valueOf(dates[START_DATE]),
-                            Date.valueOf(dates[END_DATE]),
-                            new Apartment(apartmentId),
-                            true,
-                            false,
-                            guestsCount,
-                            user,
-                            price);
-                    apartmentCalendarRepository.save(apartmentCalendar);
-                    return "Reservation is successful";
-                }
-
-                ApartmentCalendar apartmentCalendar = new ApartmentCalendar(Date.valueOf(dates[START_DATE]),
-                        Date.valueOf(dates[END_DATE]),
-                        new Apartment(apartmentId),
-                        true,
-                        true,
-                        guestsCount,
-                        user,
-                        price);
-                apartmentCalendarRepository.save(apartmentCalendar);
-            } else {
-                return "Sorry.These dates are not free";
-            }
-        }*/
-
-        return new Booking("Reservation is successful");
+        return new Booking("ERROR");
     }
 
     @GetMapping("my-advertisements")
