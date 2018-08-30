@@ -11,17 +11,15 @@ import java.sql.Date;
 import java.util.List;
 
 public interface ApartmentCalendarRepository extends JpaRepository<ApartmentCalendar, Integer> {
-    @Query("SELECT a from ApartmentCalendar a WHERE a.apartment.id = :apartmentId AND a.departure = :arrival AND a.firstDayFree = true")
-    ApartmentCalendar isFirstDayFree(@Param("apartmentId") int apartmentId, @Param("arrival") Date arrival);
-
-    @Query("SELECT a from ApartmentCalendar a WHERE a.apartment.id = :apartmentId AND a.arrival = :departure AND a.lastDayFree = true")
-    ApartmentCalendar isLastDayFree(@Param("apartmentId") int apartmentId, @Param("departure") Date departure);
 
     @Query("SELECT a FROM ApartmentCalendar a WHERE a.apartment.id = :apartmentId AND a.arrival BETWEEN :arrive AND :departure OR a.departure BETWEEN :arrive AND :departure")
     List<ApartmentCalendar> checkBetweenDates(@Param("apartmentId") int apartmentId, @Param("arrive") Date arrive, @Param("departure") Date departure);
 
-    @Query("SELECT SUM(a.currentCountGuest) FROM ApartmentCalendar a WHERE a.apartment.id = :apartmentId AND a.arrival = :arrive AND a.departure = :departure")
-    Integer checkGuestsInSharedRoom(@Param("apartmentId") int apartmentId, @Param("arrive") Date arrive, @Param("departure") Date departure);
+    @Query("SELECT a FROM ApartmentCalendar a WHERE a.apartment.id = :apartmentId AND a.arrival BETWEEN :arrive AND :departure AND a.departure BETWEEN :arrive AND :departure OR a.departure > :arrive")
+    List<ApartmentCalendar> checkDatesSharedRoom(@Param("apartmentId") int apartmentId, @Param("arrive") Date arrive, @Param("departure") Date departure);
+
+    @Query("SELECT a FROM ApartmentCalendar a WHERE a.apartment.id = :apartmentId AND a.room.id = :roomId AND a.arrival BETWEEN :arrive AND :departure OR a.departure BETWEEN :arrive AND :departure AND a.room.id = :roomId")
+    List<ApartmentCalendar> checkBetweenDatesPrivateRoom(@Param("apartmentId") int apartmentId, @Param("arrive") Date arrive, @Param("departure") Date departure, @Param("roomId") int roomId);
 
     List<ApartmentCalendar> findByUserId(int userId, Pageable pageable);
 
