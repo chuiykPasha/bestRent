@@ -20,7 +20,7 @@
 <body>
 <div layout:fragment="content">
     <div class="row">
-        <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+        <div id="carouselExampleIndicators" class="carousel slide mt-3" data-ride="carousel" style="margin: auto; width: 100%">
             <ol class="carousel-indicators">
                 <th:block th:if="${apartment.getImages().size() > 1}"
                           th:each="apartmentImage, index : ${apartment.getImages()}">
@@ -32,8 +32,8 @@
             <div class="carousel-inner">
                 <div th:each="apartmentImage, index : ${apartment.getImages()}"
                      th:classappend="${index.index == 0 ? 'active' : ''}" class="carousel-item">
-                    <img class="d-block w-100"
-                         th:src="${apartmentImage.getLinkPhoto()}">
+                        <img class="d-block w-100"
+                             th:src="${apartmentImage.getLinkPhoto()}">
                 </div>
             </div>
             <th:block th:if="${apartment.getImages().size() > 1}">
