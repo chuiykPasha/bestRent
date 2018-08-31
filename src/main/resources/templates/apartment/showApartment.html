@@ -98,6 +98,7 @@
             var guestsInput = document.getElementById('guests');
             var maxNumberOfGuests = document.getElementById('maxNumberOfGuests');
             var price = /*[[${price}]]*/ "default";
+            var approve = false;
 
             var showMsg = document.getElementById("showErrorMsg");
 
@@ -130,11 +131,13 @@
                         availableToGuest: availableToGuest,
                         guestsCount: guestsInput.value,
                         maxNumberOfGuests: maxNumberOfGuests.value,
-                        price: price
+                        price: price,
+                        approve: approve
                     },
                     type : 'POST',
                     success : function(result) {
                         showMsg.innerText = result.message;
+                        console.log(result.message);
                         if(result.message == 'Reservation is successful') {
                             showMsg.classList.remove('alert-danger');
                             showMsg.classList.add('alert-success');
@@ -143,6 +146,10 @@
                             datepicker = new HotelDatepicker(input, {
                                 disabledDates: result.reservedDates,
                             });
+                        } else if(result.message.includes('For your number of guests you will need')){
+                            approve = true;
+                            showMsg.classList.remove('alert-danger');
+                            showMsg.classList.add('alert-success');
                         } else {
                             showMsg.classList.remove('alert-success');
                             showMsg.classList.add('alert-danger');

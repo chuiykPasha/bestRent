@@ -125,41 +125,6 @@ public class ApartmentController {
             dates = bookingService.getBlockedDatesInPrivateRoom(apartment.getCalendars(), apartment.getRooms().size());
         }
 
-        /*else {
-            Map<LocalDate, Integer> checkDates = new HashMap<>();
-
-            for(ApartmentCalendar calendar : apartment.getCalendars()){
-                List<LocalDate> datesBetween = bookingService.getDatesBetween(calendar.getArrival().toLocalDate(), calendar.getDeparture().toLocalDate());
-                datesBetween.add(calendar.getDeparture().toLocalDate());
-
-                for(LocalDate date : datesBetween) {
-
-                    if(checkDates.containsKey(date)){
-                        int countDate = checkDates.get(date).intValue();
-                        checkDates.put(date, countDate + calendar.getCurrentCountGuest());
-                        continue;
-                    }
-
-                    checkDates.put(date, calendar.getCurrentCountGuest());
-                }
-            }
-
-            //checkLastDates
-            for(ApartmentCalendar  lastDay : apartment.getCalendars()){
-                int countDate = checkDates.get(lastDay.getDeparture().toLocalDate()).intValue();
-                countDate -= lastDay.getCurrentCountGuest();
-                checkDates.put(lastDay.getDeparture().toLocalDate(), countDate);
-            }
-
-
-            //fill blocket dates
-            for(Map.Entry<LocalDate, Integer> checkDate : checkDates.entrySet()){
-                if(checkDate.getValue() == apartment.getMaxNumberOfGuests()){
-                    dates.add(checkDate.getKey());
-                }
-            }
-        }*/
-
         model.addAttribute("disabledDates", dates);
         return "/apartment/showApartment";
     }
@@ -281,7 +246,7 @@ public class ApartmentController {
     @RequestMapping(value = "/apartment-booking", method = RequestMethod.POST)
     public @ResponseBody Booking apartmentBooking(@AuthenticationPrincipal User user, @RequestParam String bookingDates, @RequestParam int apartmentId,
                                                  @RequestParam String availableToGuest, @RequestParam int guestsCount, @RequestParam int maxNumberOfGuests,
-                                                 @RequestParam float price) {
+                                                 @RequestParam float price, @RequestParam boolean approve) {
         final int START_DATE = 0;
         final int END_DATE = 1;
 
@@ -307,17 +272,14 @@ public class ApartmentController {
 
             //check if apartment have equals room
             if(bookingService.apartmentHaveRoomWhereMaxGuestsEqualsGuests(apartment.getRooms(), guestsCount)){
-                boolean isReservedComplete = false;
-
                 for(Room room : apartment.getRooms()){
-                    System.out.println("ROOM ID " + room.getId());
                     if(guestsCount <= room.getMaxNumberOfGuests()){
                         List<ApartmentCalendar> betweenDates = apartmentCalendarRepository.checkBetweenDatesPrivateRoom(apartmentId, startDate, endDate, room.getId());
 
                         if(betweenDates.isEmpty()){
                             apartmentCalendarRepository.save(new ApartmentCalendar(startDate, endDate, true, true,
                                     guestsCount, apartment, user, room, false, price));
-                            return new Booking("Reservation is successful");
+                            return new Booking(bookingService.getBlockedDatesInPrivateRoom(apartment.getCalendars(), apartment.getRooms().size()), "Reservation is successful");
                         }
 
                         if(betweenDates.size() == 1){
@@ -326,13 +288,13 @@ public class ApartmentController {
                                 apartmentCalendarRepository.save(betweenDates.get(0));
                                 apartmentCalendarRepository.save(new ApartmentCalendar(startDate, endDate, true, false,
                                         guestsCount, apartment, user, room, false, price));
-                                return new Booking("Reservation is successful");
+                                return new Booking(bookingService.getBlockedDatesInPrivateRoom(apartment.getCalendars(), apartment.getRooms().size()), "Reservation is successful");
                             } else if(betweenDates.get(0).isLastDayFree() && betweenDates.get(0).getDeparture().equals(startDate)){
                                 betweenDates.get(0).setLastDayFree(false);
                                 apartmentCalendarRepository.save(betweenDates.get(0));
                                 apartmentCalendarRepository.save(new ApartmentCalendar(startDate, endDate, false, true,
                                         guestsCount, apartment, user, room, false, price));
-                                return new Booking("Reservation is successful");
+                                return new Booking(bookingService.getBlockedDatesInPrivateRoom(apartment.getCalendars(), apartment.getRooms().size()), "Reservation is successful");
                             }
                         }else if(betweenDates.size() == 2 && (betweenDates.get(0).getDeparture().equals(startDate) && betweenDates.get(0).isLastDayFree()) &&
                                 (betweenDates.get(1).isFirstDayFree() && betweenDates.get(1).getArrival().equals(endDate)) ||
@@ -345,12 +307,73 @@ public class ApartmentController {
                             apartmentCalendarRepository.save(new ApartmentCalendar(startDate, endDate, false, false,
                                     guestsCount, apartment, user, room, false, price));
 
-                            return new Booking("Reservation is successful");
+                            return new Booking(bookingService.getBlockedDatesInPrivateRoom(apartment.getCalendars(), apartment.getRooms().size()), "Reservation is successful");
                         }
                     }
                 }
             } else {
                 //for find more one room and check date
+                List<ApartmentCalendar> newCalendars = new ArrayList<>();
+                List<ApartmentCalendar> changedCalendars = new ArrayList<>();
+                int guestsInReservedRoom = 0;
+                int guests = guestsCount;
+
+                for(Room room : apartment.getRooms()){
+                    if(guestsInReservedRoom >= guestsCount){
+                        break;
+                    }
+
+                    guests -= room.getMaxNumberOfGuests();
+                    int guestSopped = guests >= 0 ? room.getMaxNumberOfGuests() : room.getMaxNumberOfGuests() - (guests * -1);
+
+                    List<ApartmentCalendar> betweenDates = apartmentCalendarRepository.checkBetweenDatesPrivateRoom(apartmentId, startDate, endDate, room.getId());
+
+                    if(betweenDates.isEmpty()){
+                        newCalendars.add(new ApartmentCalendar(startDate, endDate, true, true,
+                                guestSopped, apartment, user, room, false, price));
+                        guestsInReservedRoom += room.getMaxNumberOfGuests();
+                    } else if(betweenDates.size() == 1){
+                        if(betweenDates.get(0).isFirstDayFree() && betweenDates.get(0).getArrival().equals(endDate)){
+                            betweenDates.get(0).setFirstDayFree(false);
+                            changedCalendars.add(betweenDates.get(0));
+                            newCalendars.add(new ApartmentCalendar(startDate, endDate, true, false,
+                                    guestSopped, apartment, user, room, false, price));
+                            guestsInReservedRoom += room.getMaxNumberOfGuests();
+                        } else if(betweenDates.get(0).isLastDayFree() && betweenDates.get(0).getDeparture().equals(startDate)){
+                            betweenDates.get(0).setLastDayFree(false);
+                            changedCalendars.add(betweenDates.get(0));
+                            newCalendars.add(new ApartmentCalendar(startDate, endDate, false, true,
+                                    guestSopped, apartment, user, room, false, price));
+                            guestsInReservedRoom += room.getMaxNumberOfGuests();
+                        }
+                    }else if(betweenDates.size() == 2 && (betweenDates.get(0).getDeparture().equals(startDate) && betweenDates.get(0).isLastDayFree()) &&
+                            (betweenDates.get(1).isFirstDayFree() && betweenDates.get(1).getArrival().equals(endDate)) ||
+                            betweenDates.size() == 2 && (betweenDates.get(1).getDeparture().equals(startDate) && betweenDates.get(1).isLastDayFree()) &&
+                                    (betweenDates.get(0).isFirstDayFree() && betweenDates.get(0).getArrival().equals(endDate))){
+                        betweenDates.get(0).setLastDayFree(false);
+                        changedCalendars.add(betweenDates.get(0));
+                        betweenDates.get(1).setFirstDayFree(false);
+                        changedCalendars.add(betweenDates.get(1));
+                        newCalendars.add(new ApartmentCalendar(startDate, endDate, false, false,
+                                guestSopped, apartment, user, room, false, price));
+                        guestsInReservedRoom += room.getMaxNumberOfGuests();
+                    }
+                }
+
+                if(guestsInReservedRoom < guestsCount){
+                    return new Booking("Sorry don't have rooms for your guests count");
+                }
+
+                if(approve){
+                    if(!changedCalendars.isEmpty()) {
+                        apartmentCalendarRepository.saveAll(changedCalendars);
+                    }
+                    apartmentCalendarRepository.saveAll(newCalendars);
+
+                    return new Booking(bookingService.getBlockedDatesInPrivateRoom(apartment.getCalendars(), apartment.getRooms().size()), "Reservation is successful");
+                }
+
+                return new Booking("For your number of guests you will need " + newCalendars.size() + " rooms and the price will be " + price * newCalendars.size() + " . Will you book?");
             }
 
             return new Booking("Sorry these dates reserved");
