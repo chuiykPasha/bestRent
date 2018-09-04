@@ -12,7 +12,7 @@ import java.util.List;
 
 public interface ApartmentCalendarRepository extends JpaRepository<ApartmentCalendar, Integer> {
 
-    @Query("SELECT a FROM ApartmentCalendar a WHERE a.apartment.id = :apartmentId AND a.arrival BETWEEN :arrive AND :departure OR a.departure BETWEEN :arrive AND :departure")
+    @Query("SELECT a FROM ApartmentCalendar a WHERE a.apartment.id = :apartmentId AND a.arrival BETWEEN :arrive AND :departure OR a.departure BETWEEN :arrive AND :departure AND a.apartment.id = :apartmentId")
     List<ApartmentCalendar> checkBetweenDates(@Param("apartmentId") int apartmentId, @Param("arrive") Date arrive, @Param("departure") Date departure);
 
     @Query("SELECT a FROM ApartmentCalendar a WHERE a.apartment.id = :apartmentId AND a.arrival BETWEEN :arrive AND :departure AND a.departure BETWEEN :arrive AND :departure OR a.departure > :arrive")

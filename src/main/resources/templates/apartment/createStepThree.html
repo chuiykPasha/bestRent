@@ -83,7 +83,7 @@
 </head>
 <body>
 <div layout:fragment="content">
-    <h1>Create Step three</h1>
+    <h1 class="text-center">Create Step three</h1>
     <form th:action="@{/apartment-create-step-three}" th:object="${apartmentImagesForm}" enctype="multipart/form-data"
           method="post">
         <div class="row justify-content-center">
@@ -169,7 +169,8 @@
 
                             var closeImage = document.createElement("img");
                             closeImage.classList.add('remove');
-                            closeImage.src = 'http://wecision.com/enterprise/images/icons/closeIcon.png';
+                            //closeImage.src = 'http://wecision.com/enterprise/images/icons/closeIcon.png';
+                            closeImage.src = '/css/red-close-icon.png';
 
                             closeImage.addEventListener('click', function () {
                                 var img = this.parentNode.children[0];

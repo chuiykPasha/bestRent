@@ -5,7 +5,7 @@
 </head>
 <body>
 <div layout:fragment="content">
-    <h1 class="text-center">Create Step one</h1>
+    <h1 class="text-center">Change info</h1>
     <form th:action="@{/change-apartment-info}" th:object="${changeApartmentInfoForm}" method="post" id="form">
         <input type="hidden" th:value="${changeApartmentInfoForm.id}" name="id">
         <div class="row">
