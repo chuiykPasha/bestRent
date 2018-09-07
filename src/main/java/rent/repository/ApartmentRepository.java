@@ -19,4 +19,7 @@ public interface ApartmentRepository extends JpaRepository<Apartment, Integer> {
     List<Apartment> findByUserIdAndIsActiveTrueOrderByIdDesc(int userId);
 
     List<Apartment> findByIsActiveTrue(Pageable pageable);
+
+    @Query(value = "SELECT count(*) FROM apartment WHERE is_active = true", nativeQuery = true)
+    int countActiveApartments();
 }

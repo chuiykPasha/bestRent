@@ -20,6 +20,7 @@ public class Room implements Serializable {
     @JoinColumn(name = "apartmentId", nullable = false)
     private Apartment apartment;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "room")
     private Set<ApartmentCalendar> calendars = new HashSet<>();
 

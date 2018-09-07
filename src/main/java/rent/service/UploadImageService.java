@@ -11,6 +11,7 @@ import com.dropbox.core.v2.files.WriteMode;
 import com.dropbox.core.v2.sharing.RequestedVisibility;
 import com.dropbox.core.v2.sharing.SharedLinkMetadata;
 import com.dropbox.core.v2.sharing.SharedLinkSettings;
+import org.apache.tomcat.jni.Time;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rent.contoller.ApartmentController;
@@ -31,7 +32,7 @@ public class UploadImageService {
     private DbxClientV2 client;
     @Autowired
     private ApartmentImageRepository apartmentImageRepository;
-    public static boolean firstImageUploaded = false;
+    public volatile static boolean firstImageUploaded = false;
     @Autowired
     private UserRepository userRepository;
 
@@ -179,6 +180,7 @@ public class UploadImageService {
                 String url = slm.getUrl();
                 apartmentImageRepository.save(new ApartmentImage(filePath, getDlUriToDropBoxImage(url), new Apartment(apartmentId), sizeInBytes));
                 firstImageUploaded = true;
+                Time.sleep(500);
             } catch (DbxException e) {
                 e.printStackTrace();
             } catch (IOException e) {

@@ -15,7 +15,7 @@
                         <label class="text-center" for="maxNumberOfGuests">Max number of guests</label>
                         <input th:value="${changeApartmentInfoForm.maxNumberOfGuests}" th:field="*{maxNumberOfGuests}" class="form-control" id="maxNumberOfGuests" value="1"
                                min="1"
-                               max="16" type="number"/>
+                               max="16" type="number" readonly/>
                         <p class="alert alert-danger mt-2" role="alert"
                            th:if="${#fields.hasErrors('maxNumberOfGuests')}"
                            th:errors="*{maxNumberOfGuests}"></p>
@@ -92,7 +92,7 @@
             <input name="guestsInRoom"
                    class="form-control" value="1"
                    min="1"
-                   max="16" type="number"/>
+                   max="16" type="number" readonly/>
         </div>
     </template>
     <script type="text/javascript" th:src="@{/js/chosen.jquery.js}"></script>
@@ -121,10 +121,13 @@
 
             console.log(chosen);
 
+            var lists = [];
+
             for(var i = 0; i < selectedChosen.length; i++){
-                $("#apartmentComforts").val(selectedChosen[i].id).trigger('chosen:updated');
+                lists.push(selectedChosen[i].id);
             }
 
+            $("#apartmentComforts").val(lists).trigger('chosen:updated');
 
             form.addEventListener('submit', function (e) {
                 if(availableToGuests == 'Private room') {

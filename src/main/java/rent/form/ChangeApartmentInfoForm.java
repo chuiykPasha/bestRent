@@ -5,11 +5,12 @@ import rent.entities.ApartmentComfort;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 
-public class ChangeApartmentInfoForm {
+public class ChangeApartmentInfoForm implements Serializable {
     private Integer id;
 
     @NotEmpty

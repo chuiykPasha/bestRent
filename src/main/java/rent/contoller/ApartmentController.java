@@ -94,7 +94,7 @@ public class ApartmentController {
             model.addAttribute("countPage", countPage);
             model.addAttribute("current", pageNumber);
         } else {
-            int countPage = (int)Math.ceil(apartmentRepository.count() / (double)sizeApartmentsInPage);
+            int countPage = (int)Math.ceil(apartmentRepository.countActiveApartments() / (double)sizeApartmentsInPage);
             List<Apartment> apartments = apartmentRepository.findByIsActiveTrue(PageRequest.of(pageNumber, sizeApartmentsInPage, Sort.Direction.DESC, "id"));
             model.addAttribute("apartments", apartments);
             model.addAttribute("countPage", countPage);
@@ -218,6 +218,11 @@ public class ApartmentController {
 
         while (true) {
             if(UploadImageService.firstImageUploaded == true) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 break;
             }
         }
@@ -373,7 +378,7 @@ public class ApartmentController {
                     return new Booking(bookingService.getBlockedDatesInPrivateRoom(apartment.getCalendars(), apartment.getRooms().size()), "Reservation is successful");
                 }
 
-                return new Booking("For your number of guests you will need " + newCalendars.size() + " rooms and the price will be " + price * newCalendars.size() + " . Will you book?");
+                return new Booking("For your number of guests you will need " + newCalendars.size() + " rooms and the price will be " + price * newCalendars.size() + " . Will you booking?");
             }
 
             return new Booking("Sorry these dates reserved");
@@ -393,7 +398,7 @@ public class ApartmentController {
         int pageNumber = page != null ? page - 1 : 0;
         List<Integer> ownerApartmentsId = user.getApartments().stream().map((s) -> s.getId()).collect(Collectors.toList());
         List<ApartmentCalendar> rent = apartmentCalendarRepository.findByApartmentIdIn(ownerApartmentsId, PageRequest.of(pageNumber, SIZE_HISTORY_IN_PAGE, Sort.Direction.DESC, "id"));
-        final int countPage = (int)Math.ceil(apartmentCalendarRepository.ownerRentHistoryCount(ownerApartmentsId) / SIZE_HISTORY_IN_PAGE);
+        final int countPage = (int)Math.ceil(apartmentCalendarRepository.ownerRentHistoryCount(ownerApartmentsId) / (double)SIZE_HISTORY_IN_PAGE);
         model.addAttribute("rent", rent);
         model.addAttribute("defaultAvatar", User.DEFAULT_AVATAR);
         model.addAttribute("countPage", countPage);
@@ -406,7 +411,7 @@ public class ApartmentController {
     @GetMapping("client-booking-history")
     public String clientBookingHistory(@AuthenticationPrincipal User user, @RequestParam(name = "page", required = false) Integer page, Model model){
         final int pageNumber = page != null ? page - 1 : 0;
-        final int countPage = (int)Math.ceil(apartmentCalendarRepository.clientBookingHistoryCount(user.getId()) / SIZE_HISTORY_IN_PAGE);
+        final int countPage = (int)Math.ceil(apartmentCalendarRepository.clientBookingHistoryCount(user.getId()) / (double)SIZE_HISTORY_IN_PAGE);
         List<ApartmentCalendar> booking = apartmentCalendarRepository.findByUserId(user.getId(), PageRequest.of(pageNumber, SIZE_HISTORY_IN_PAGE, Sort.Direction.DESC, "id"));
         model.addAttribute("booking", booking);
         model.addAttribute("defaultAvatar", User.DEFAULT_AVATAR);
