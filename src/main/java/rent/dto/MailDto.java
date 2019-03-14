@@ -1,14 +1,14 @@
-package rent.model;
+package rent.dto;
 
 import java.util.Map;
 
-public class Mail {
+public class MailDto {
     private String from;
     private String to;
     private String subject;
     private Map<String, Object> model;
 
-    public Mail() {
+    public MailDto() {
 
     }
 

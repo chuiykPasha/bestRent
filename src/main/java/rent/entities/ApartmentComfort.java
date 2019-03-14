@@ -1,32 +1,31 @@
 package rent.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import javax.persistence.*;
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "ApartmentComfort")
-public class ApartmentComfort implements Serializable {
+public class ApartmentComfort {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
     @Column(nullable = false)
     private String name;
-    @Column
+
     private boolean isActive;
 
     @JsonIgnore
     @ManyToMany(mappedBy = "apartmentComforts", fetch = FetchType.LAZY)
-    private Set<Apartment> apartments;
-
-    public ApartmentComfort() {}
-
-    public ApartmentComfort(String name) {
-        this.name = name;
-    }
+    private Set<Apartment> apartments = new HashSet<>();
 
     public ApartmentComfort(int id) {
         this.id = id;
@@ -36,37 +35,5 @@ public class ApartmentComfort implements Serializable {
         this.id = id;
         this.name = name;
         this.isActive = true;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Set<Apartment> getApartments() {
-        return apartments;
-    }
-
-    public void setApartments(Set<Apartment> apartments) {
-        this.apartments = apartments;
-    }
-
-    public boolean isActive() {
-        return isActive;
-    }
-
-    public void setActive(boolean active) {
-        isActive = active;
     }
 }

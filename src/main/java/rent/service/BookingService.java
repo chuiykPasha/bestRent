@@ -1,14 +1,13 @@
 package rent.service;
 
-import org.apache.tomcat.jni.Local;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import rent.dto.BookingDto;
 import rent.entities.Apartment;
 import rent.entities.ApartmentCalendar;
 import rent.entities.Room;
 import rent.entities.User;
-import rent.model.Booking;
-import rent.model.SharedRoomBookingDayInfo;
+import rent.dto.SharedRoomBookingDayInfoDto;
 import rent.repository.ApartmentCalendarRepository;
 import rent.repository.ApartmentRepository;
 
@@ -28,7 +27,7 @@ public class BookingService {
 
     private final int REMOVE_FIRST_DATE = 0;
 
-    public Booking bookingEntireApartment(int apartmentId, Date startDate, Date endDate, int guestsCount, User user, float price)
+    public BookingDto bookingEntireApartment(int apartmentId, Date startDate, Date endDate, int guestsCount, User user, float price)
     {
         List<ApartmentCalendar> betweenDates = apartmentCalendarRepository.checkBetweenDates(apartmentId, startDate, endDate);
 
@@ -36,7 +35,7 @@ public class BookingService {
             ApartmentCalendar apartmentCalendar = new ApartmentCalendar(startDate, endDate, new Apartment(apartmentId),
                     true, true, guestsCount, user, price);
             apartmentCalendarRepository.save(apartmentCalendar);
-            return new Booking(getBlockedDatesInEntireApartment(apartmentRepository.getOne(apartmentId).getCalendars()), "Reservation is successful");
+            return new BookingDto(getBlockedDatesInEntireApartment(apartmentRepository.getOne(apartmentId).getCalendars()), "Reservation is successful");
         }
 
         if(betweenDates.size() == 1){
@@ -46,16 +45,16 @@ public class BookingService {
                 apartmentCalendarRepository.save(new ApartmentCalendar(startDate, endDate, new Apartment(apartmentId),
                         true, false, guestsCount, user, price));
 
-                return new Booking(getBlockedDatesInEntireApartment(apartmentRepository.getOne(apartmentId).getCalendars()) ,"Reservation is successful");
+                return new BookingDto(getBlockedDatesInEntireApartment(apartmentRepository.getOne(apartmentId).getCalendars()) ,"Reservation is successful");
             } else if(betweenDates.get(0).isLastDayFree() && betweenDates.get(0).getDeparture().equals(startDate)){
                 betweenDates.get(0).setLastDayFree(false);
                 apartmentCalendarRepository.save(betweenDates.get(0));
                 apartmentCalendarRepository.save(new ApartmentCalendar(startDate, endDate, new Apartment(apartmentId),
                         false, true, guestsCount, user, price));
 
-                return new Booking(getBlockedDatesInEntireApartment(apartmentRepository.getOne(apartmentId).getCalendars()) ,"Reservation is successful");
+                return new BookingDto(getBlockedDatesInEntireApartment(apartmentRepository.getOne(apartmentId).getCalendars()) ,"Reservation is successful");
             } else {
-                return new Booking("Sorry these dates reserved");
+                return new BookingDto("Sorry these dates reserved");
             }
         }else if(betweenDates.size() == 2 && (betweenDates.get(0).getDeparture().equals(startDate) && betweenDates.get(0).isLastDayFree()) &&
                 (betweenDates.get(1).isFirstDayFree() && betweenDates.get(1).getArrival().equals(endDate)) ||
@@ -68,13 +67,13 @@ public class BookingService {
             apartmentCalendarRepository.save(new ApartmentCalendar(startDate, endDate, new Apartment(apartmentId),
                     false, false, guestsCount, user, price));
 
-            return new Booking(getBlockedDatesInEntireApartment(apartmentRepository.getOne(apartmentId).getCalendars()) ,"Reservation is successful");
+            return new BookingDto(getBlockedDatesInEntireApartment(apartmentRepository.getOne(apartmentId).getCalendars()) ,"Reservation is successful");
         }
 
-        return new Booking("Sorry these dates reserved");
+        return new BookingDto("Sorry these dates reserved");
     }
 
-    public Booking bookingSharedRoom(int apartmentId, Date startDate, Date endDate, int guestsCount, User user, float price, int maxNumberOfGuests){
+    public BookingDto bookingSharedRoom(int apartmentId, Date startDate, Date endDate, int guestsCount, User user, float price, int maxNumberOfGuests){
         List<ApartmentCalendar> betweenDates = apartmentCalendarRepository.checkDatesSharedRoom(apartmentId, startDate, endDate);
 
         if (betweenDates.isEmpty()) {
@@ -82,10 +81,10 @@ public class BookingService {
                     true, true, guestsCount, user, price);
             apartmentCalendarRepository.save(apartmentCalendar);
 
-            return new Booking(getBlockedDatesInSharedRoom(apartmentRepository.getOne(apartmentId).getCalendars(), maxNumberOfGuests), "Reservation is successful");
+            return new BookingDto(getBlockedDatesInSharedRoom(apartmentRepository.getOne(apartmentId).getCalendars(), maxNumberOfGuests), "Reservation is successful");
         }
 
-        Map<LocalDate, SharedRoomBookingDayInfo> daysInfo = new HashMap<>();
+        Map<LocalDate, SharedRoomBookingDayInfoDto> daysInfo = new HashMap<>();
 
         for (ApartmentCalendar day : betweenDates) {
             List<LocalDate> fromArriveToDepartureDays = getDatesFromArriveToDeparture(day.getArrival().toLocalDate()
@@ -102,11 +101,11 @@ public class BookingService {
                     }
                 } else {
                     if (checkDate.equals(day.getArrival().toLocalDate())) {
-                        daysInfo.put(checkDate, new SharedRoomBookingDayInfo(0, day.getCurrentCountGuest(), 0));
+                        daysInfo.put(checkDate, new SharedRoomBookingDayInfoDto(0, day.getCurrentCountGuest(), 0));
                     } else if (checkDate.equals(day.getDeparture().toLocalDate())) {
-                        daysInfo.put(checkDate, new SharedRoomBookingDayInfo(0, 0, day.getCurrentCountGuest()));
+                        daysInfo.put(checkDate, new SharedRoomBookingDayInfoDto(0, 0, day.getCurrentCountGuest()));
                     } else {
-                        daysInfo.put(checkDate, new SharedRoomBookingDayInfo(day.getCurrentCountGuest(), 0, 0));
+                        daysInfo.put(checkDate, new SharedRoomBookingDayInfoDto(day.getCurrentCountGuest(), 0, 0));
                     }
                 }
             }
@@ -116,11 +115,11 @@ public class BookingService {
 
         for (LocalDate date : checkSpaces) {
             if (daysInfo.containsKey(date)) {
-                SharedRoomBookingDayInfo info = daysInfo.get(date);
+                SharedRoomBookingDayInfoDto info = daysInfo.get(date);
                 int freeSpaces = maxNumberOfGuests - info.getArriveGuests() - info.getCurrentGuests() + info.getDepartureGuests();
 
                 if (freeSpaces < guestsCount) {
-                    return new Booking("Sorry these dates reserved");
+                    return new BookingDto("Sorry these dates reserved");
                 }
             }
         }
@@ -129,7 +128,7 @@ public class BookingService {
         ApartmentCalendar apartmentCalendar = new ApartmentCalendar(startDate, endDate, new Apartment(apartmentId),
                 true, true, guestsCount, user, price);
         apartmentCalendarRepository.save(apartmentCalendar);
-        return new Booking(getBlockedDatesInSharedRoom(apartmentRepository.getOne(apartmentId).getCalendars(), maxNumberOfGuests), "Reservation is successful");
+        return new BookingDto(getBlockedDatesInSharedRoom(apartmentRepository.getOne(apartmentId).getCalendars(), maxNumberOfGuests), "Reservation is successful");
     }
 
     public boolean apartmentHaveRoomWhereMaxGuestsEqualsGuests(Set<Room> rooms, int guestsCount){

@@ -23,7 +23,6 @@ import org.thymeleaf.extras.springsecurity4.dialect.SpringSecurityDialect;
 import java.util.Locale;
 
 @Configuration
-@EnableTransactionManagement
 @EnableJpaRepositories(value = "rent.repository")
 public class BeanConfig {
     @Bean

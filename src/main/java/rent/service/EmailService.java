@@ -6,7 +6,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
-import rent.model.Mail;
+import rent.dto.MailDto;
 
 import javax.mail.internet.MimeMessage;
 import java.nio.charset.StandardCharsets;
@@ -18,7 +18,7 @@ public class EmailService {
     @Autowired
     private SpringTemplateEngine springTemplateEngine;
 
-    public void sendEmail(Mail mail, String templatePath) {
+    public void sendEmail(MailDto mail, String templatePath) {
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message,

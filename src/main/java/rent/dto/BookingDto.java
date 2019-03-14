@@ -1,18 +1,18 @@
-package rent.model;
+package rent.dto;
 
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.List;
 
-public class Booking implements Serializable {
+public class BookingDto implements Serializable {
     List<LocalDate> reservedDates;
     private String message;
 
-    public Booking(String message) {
+    public BookingDto(String message) {
         this.message = message;
     }
 
-    public Booking(List<LocalDate> reservedDates, String message) {
+    public BookingDto(List<LocalDate> reservedDates, String message) {
         this.reservedDates = reservedDates;
         this.message = message;
     }

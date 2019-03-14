@@ -1,8 +1,12 @@
 package rent.form;
 
+import lombok.Getter;
+import lombok.Setter;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 
+@Getter
+@Setter
 public class ChangeProfileForm {
     @NotEmpty
     @Email
@@ -15,30 +19,6 @@ public class ChangeProfileForm {
     public ChangeProfileForm(@NotEmpty @Email String email, @NotEmpty String name, @NotEmpty String surName) {
         this.email = email;
         this.name = name;
-        this.surName = surName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getSurName() {
-        return surName;
-    }
-
-    public void setSurName(String surName) {
         this.surName = surName;
     }
 }

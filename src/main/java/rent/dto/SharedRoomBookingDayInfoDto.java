@@ -1,11 +1,11 @@
-package rent.model;
+package rent.dto;
 
-public class SharedRoomBookingDayInfo {
+public class SharedRoomBookingDayInfoDto {
     private int currentGuests;
     private int arriveGuests;
     private int departureGuests;
 
-    public SharedRoomBookingDayInfo(int currentGuests, int arriveGuests, int departureGuests) {
+    public SharedRoomBookingDayInfoDto(int currentGuests, int arriveGuests, int departureGuests) {
         this.currentGuests = currentGuests;
         this.arriveGuests = arriveGuests;
         this.departureGuests = departureGuests;

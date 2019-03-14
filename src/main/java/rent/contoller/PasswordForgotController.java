@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import rent.entities.PasswordResetToken;
 import rent.entities.User;
 import rent.form.PasswordForgotForm;
-import rent.model.Mail;
+import rent.dto.MailDto;
 import rent.repository.PasswordResetTokenRepository;
 import rent.repository.UserRepository;
 import rent.service.EmailService;
@@ -58,7 +58,7 @@ public class PasswordForgotController {
         token.setUser(user);
         passwordResetTokenRepository.save(token);
 
-        Mail mail = new Mail();
+        MailDto mail = new MailDto();
         mail.setFrom("best-rent.tk");
         mail.setTo(user.getEmail());
         mail.setSubject("Password reset request");

@@ -1,19 +1,8 @@
 package rent.contoller;
 
-import com.dropbox.core.*;
-import com.dropbox.core.http.OkHttp3Requestor;
-import com.dropbox.core.v2.DbxClientV2;
-import com.dropbox.core.v2.files.*;
-import com.dropbox.core.v2.sharing.RequestedVisibility;
-import com.dropbox.core.v2.sharing.SharedLinkMetadata;
-import com.dropbox.core.v2.sharing.SharedLinkSettings;
-import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -26,29 +15,21 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import rent.dto.BookingDto;
+import rent.dto.MailDto;
 import rent.entities.*;
 import rent.form.*;
-import rent.model.Booking;
-import rent.model.Mail;
-import rent.model.SharedRoomBookingDayInfo;
 import rent.repository.*;
 import rent.service.BookingService;
 import rent.service.EmailService;
 import rent.service.UploadImageService;
-import sun.awt.ModalityListener;
 
-import javax.sound.sampled.Line;
 import javax.validation.Valid;
-import java.io.*;
 import java.math.BigDecimal;
-import java.security.Principal;
 import java.sql.Date;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @Controller
 @SessionAttributes(types = {ApartmentInfoForm.class, ApartmentLocationForm.class})
@@ -249,20 +230,21 @@ public class ApartmentController {
 
 
     @RequestMapping(value = "/apartment-booking", method = RequestMethod.POST)
-    public @ResponseBody Booking apartmentBooking(@AuthenticationPrincipal User user, @RequestParam String bookingDates, @RequestParam int apartmentId,
-                                                 @RequestParam String availableToGuest, @RequestParam int guestsCount, @RequestParam int maxNumberOfGuests,
-                                                 @RequestParam float price, @RequestParam boolean approve) {
+    public @ResponseBody
+    BookingDto apartmentBooking(@AuthenticationPrincipal User user, @RequestParam String bookingDates, @RequestParam int apartmentId,
+                                @RequestParam String availableToGuest, @RequestParam int guestsCount, @RequestParam int maxNumberOfGuests,
+                                @RequestParam float price, @RequestParam boolean approve) {
         final int START_DATE = 0;
         final int END_DATE = 1;
 
         if(bookingDates == null) {
-            return new Booking("Wrong dates");
+            return new BookingDto("Wrong dates");
         }
 
         String [] dates = bookingDates.split(" - ");
 
         if(dates.length != 2) {
-            return new Booking("Wrong dates");
+            return new BookingDto("Wrong dates");
         }
 
         final Date startDate = Date.valueOf(dates[START_DATE]);
@@ -284,7 +266,7 @@ public class ApartmentController {
                         if(betweenDates.isEmpty()){
                             apartmentCalendarRepository.save(new ApartmentCalendar(startDate, endDate, true, true,
                                     guestsCount, apartment, user, room, false, price));
-                            return new Booking(bookingService.getBlockedDatesInPrivateRoom(apartment.getCalendars(), apartment.getRooms().size()), "Reservation is successful");
+                            return new BookingDto(bookingService.getBlockedDatesInPrivateRoom(apartment.getCalendars(), apartment.getRooms().size()), "Reservation is successful");
                         }
 
                         if(betweenDates.size() == 1){
@@ -293,13 +275,13 @@ public class ApartmentController {
                                 apartmentCalendarRepository.save(betweenDates.get(0));
                                 apartmentCalendarRepository.save(new ApartmentCalendar(startDate, endDate, true, false,
                                         guestsCount, apartment, user, room, false, price));
-                                return new Booking(bookingService.getBlockedDatesInPrivateRoom(apartment.getCalendars(), apartment.getRooms().size()), "Reservation is successful");
+                                return new BookingDto(bookingService.getBlockedDatesInPrivateRoom(apartment.getCalendars(), apartment.getRooms().size()), "Reservation is successful");
                             } else if(betweenDates.get(0).isLastDayFree() && betweenDates.get(0).getDeparture().equals(startDate)){
                                 betweenDates.get(0).setLastDayFree(false);
                                 apartmentCalendarRepository.save(betweenDates.get(0));
                                 apartmentCalendarRepository.save(new ApartmentCalendar(startDate, endDate, false, true,
                                         guestsCount, apartment, user, room, false, price));
-                                return new Booking(bookingService.getBlockedDatesInPrivateRoom(apartment.getCalendars(), apartment.getRooms().size()), "Reservation is successful");
+                                return new BookingDto(bookingService.getBlockedDatesInPrivateRoom(apartment.getCalendars(), apartment.getRooms().size()), "Reservation is successful");
                             }
                         }else if(betweenDates.size() == 2 && (betweenDates.get(0).getDeparture().equals(startDate) && betweenDates.get(0).isLastDayFree()) &&
                                 (betweenDates.get(1).isFirstDayFree() && betweenDates.get(1).getArrival().equals(endDate)) ||
@@ -312,7 +294,7 @@ public class ApartmentController {
                             apartmentCalendarRepository.save(new ApartmentCalendar(startDate, endDate, false, false,
                                     guestsCount, apartment, user, room, false, price));
 
-                            return new Booking(bookingService.getBlockedDatesInPrivateRoom(apartment.getCalendars(), apartment.getRooms().size()), "Reservation is successful");
+                            return new BookingDto(bookingService.getBlockedDatesInPrivateRoom(apartment.getCalendars(), apartment.getRooms().size()), "Reservation is successful");
                         }
                     }
                 }
@@ -366,7 +348,7 @@ public class ApartmentController {
                 }
 
                 if(guestsInReservedRoom < guestsCount){
-                    return new Booking("Sorry don't have rooms for your guests count");
+                    return new BookingDto("Sorry don't have rooms for your guests count");
                 }
 
                 if(approve){
@@ -375,16 +357,16 @@ public class ApartmentController {
                     }
                     apartmentCalendarRepository.saveAll(newCalendars);
 
-                    return new Booking(bookingService.getBlockedDatesInPrivateRoom(apartment.getCalendars(), apartment.getRooms().size()), "Reservation is successful");
+                    return new BookingDto(bookingService.getBlockedDatesInPrivateRoom(apartment.getCalendars(), apartment.getRooms().size()), "Reservation is successful");
                 }
 
-                return new Booking("For your number of guests you will need " + newCalendars.size() + " rooms and the price will be " + price * newCalendars.size() + " . Will you booking?");
+                return new BookingDto("For your number of guests you will need " + newCalendars.size() + " rooms and the price will be " + price * newCalendars.size() + " . Will you booking?");
             }
 
-            return new Booking("Sorry these dates reserved");
+            return new BookingDto("Sorry these dates reserved");
         }
 
-        return new Booking("ERROR");
+        return new BookingDto("ERROR");
     }
 
     @GetMapping("my-advertisements")
@@ -447,9 +429,9 @@ public class ApartmentController {
                     continue;
                 }
 
-                Mail mail = new Mail();
+                MailDto mail = new MailDto();
                 mail.setFrom("best-rent.tk");
-                mail.setSubject("Booking address changed");
+                mail.setSubject("BookingDto address changed");
                 mail.setTo(item.getUser().getEmail());
                 Map<String, Object> model = new HashMap<>();
                 model.put("from", changeApartment.getLocation());
@@ -575,7 +557,7 @@ public class ApartmentController {
         Thread sendEmails = new Thread(){
             public void run(){
                 for(ApartmentCalendar apartmentCalendar : canceled) {
-                    Mail mail = new Mail();
+                    MailDto mail = new MailDto();
                     mail.setFrom("best-rent.tk");
                     mail.setSubject("Your reservation has been canceled");
                     mail.setTo(apartmentCalendar.getUser().getEmail());
