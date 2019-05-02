@@ -11,6 +11,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
+import rent.dto.MailDto;
 import rent.entities.*;
 import rent.repository.ApartmentCalendarRepository;
 import rent.repository.ApartmentRepository;

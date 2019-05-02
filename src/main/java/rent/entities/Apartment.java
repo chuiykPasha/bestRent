@@ -46,7 +46,6 @@ public class Apartment {
     private AvailableToGuest availableToGuest;
 
     @OneToMany(mappedBy = "apartment")
-    @Fetch(FetchMode.JOIN)
     private Set<ApartmentImage> images = new HashSet<>();
 
     @OneToMany(mappedBy = "apartment")
