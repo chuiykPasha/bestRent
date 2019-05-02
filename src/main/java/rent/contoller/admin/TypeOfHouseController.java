@@ -2,6 +2,7 @@ package rent.contoller.admin;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,13 +16,15 @@ import javax.validation.Valid;
 
 @Controller
 @RequestMapping("/admin")
+@Transactional
 public class TypeOfHouseController {
     @Autowired
     private TypeOfHouseRepository typeOfHouseRepository;
 
     @GetMapping("/type-of-house")
+    @Transactional(readOnly = true)
     public String index(Model model) {
-        model.addAttribute("typeOfHouses", typeOfHouseRepository.findAll());
+        model.addAttribute("typeOfHouses", typeOfHouseRepository.findAllActive());
         return "/admin/typeOfHouse/index";
     }
 
@@ -66,8 +69,8 @@ public class TypeOfHouseController {
             return "/admin/typeOFHouse/update";
         }
 
-        typeOfHouse = new TypeOfHouse(typeOfHouseForm.getId(), typeOfHouseForm.getName());
-        typeOfHouseRepository.save(typeOfHouse);
+        typeOfHouse = typeOfHouseRepository.getOne(typeOfHouseForm.getId());
+        typeOfHouse.setName(typeOfHouseForm.getName());
         return "redirect:/admin/type-of-house";
     }
 
@@ -88,7 +91,6 @@ public class TypeOfHouseController {
             }
 
             find.setActive(false);
-            typeOfHouseRepository.save(find);
         }
 
         return "redirect:/admin/type-of-house";
