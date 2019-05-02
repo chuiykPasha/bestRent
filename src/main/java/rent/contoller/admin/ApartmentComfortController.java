@@ -20,6 +20,7 @@ public class ApartmentComfortController {
     private ApartmentComfortRepository apartmentComfortRepository;
 
     @GetMapping("/apartment-comfort")
+    @Transactional(readOnly = true)
     public String index(Model model){
         model.addAttribute("apartmentComforts", apartmentComfortRepository.findAllActive());
         return "/admin/apartmentComfort/index";

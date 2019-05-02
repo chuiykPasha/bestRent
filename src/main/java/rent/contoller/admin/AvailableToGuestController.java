@@ -2,6 +2,7 @@ package rent.contoller.admin;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -14,13 +15,15 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/admin")
+@Transactional
 public class AvailableToGuestController {
     @Autowired
     private AvailableToGuestRepository availableToGuestRepository;
 
     @GetMapping("/available-to-guest")
+    @Transactional(readOnly = true)
     public String index(Model model) {
-        model.addAttribute("availableToGuests", availableToGuestRepository.findAll());
+        model.addAttribute("availableToGuests", availableToGuestRepository.findAllActive());
         return "/admin/availableToGuest/index";
     }
 
@@ -65,8 +68,8 @@ public class AvailableToGuestController {
             return "/admin/availableToGuest/update";
         }
 
-        update = new AvailableToGuest(availableToGuestForm.getId(), availableToGuestForm.getName());
-        availableToGuestRepository.save(update);
+        update = availableToGuestRepository.getOne(availableToGuestForm.getId());
+        update.setName(availableToGuestForm.getName());
         return "redirect:/admin/available-to-guest";
     }
 
@@ -79,7 +82,7 @@ public class AvailableToGuestController {
     @PostMapping("/available-to-guest/delete")
     public String delete(AvailableToGuestForm availableToGuestForm, Model model) {
         if(availableToGuestForm.getId() != null) {
-            AvailableToGuest find = availableToGuestRepository.getOne(availableToGuestForm.getId());
+            AvailableToGuest find = availableToGuestRepository.findById(availableToGuestForm.getId()).get();
 
             if(!find.getApartments().isEmpty()){
                 model.addAttribute("error", "You can't delete this because this value is used in other advertisements");
@@ -87,7 +90,6 @@ public class AvailableToGuestController {
             }
 
             find.setActive(false);
-            availableToGuestRepository.save(find);
         }
 
         return "redirect:/admin/available-to-guest";
