@@ -1,5 +1,10 @@
 package rent.dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class SharedRoomBookingDayInfoDto {
     private int currentGuests;
     private int arriveGuests;
@@ -19,16 +24,8 @@ public class SharedRoomBookingDayInfoDto {
         this.currentGuests += currentGuests;
     }
 
-    public int getArriveGuests() {
-        return arriveGuests;
-    }
-
     public void plusArriveGuests(int arriveGuests) {
         this.arriveGuests += arriveGuests;
-    }
-
-    public int getDepartureGuests() {
-        return departureGuests;
     }
 
     public void plusDepartureGuests(int departureGuests) {

@@ -1,10 +1,14 @@
 package rent.dto;
 
-import java.io.Serializable;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDate;
 import java.util.List;
 
-public class BookingDto implements Serializable {
+@Getter
+@Setter
+public class BookingDto {
     List<LocalDate> reservedDates;
     private String message;
 
@@ -14,22 +18,6 @@ public class BookingDto implements Serializable {
 
     public BookingDto(List<LocalDate> reservedDates, String message) {
         this.reservedDates = reservedDates;
-        this.message = message;
-    }
-
-    public List<LocalDate> getReservedDates() {
-        return reservedDates;
-    }
-
-    public void setReservedDates(List<LocalDate> reservedDates) {
-        this.reservedDates = reservedDates;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
         this.message = message;
     }
 }
