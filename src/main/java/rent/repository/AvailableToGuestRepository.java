@@ -12,6 +12,6 @@ import java.util.List;
 public interface AvailableToGuestRepository extends JpaRepository<AvailableToGuest, Integer> {
     AvailableToGuest findByNameAndIsActiveTrue(String name);
     List<AvailableToGuest> findByIsActiveTrue();
-    @Query("select atg from AvailableToGuest atg left join fetch atg.apartments a left join fetch a.typeOfHouse left join fetch a.availableToGuest left join fetch a.user where atg.isActive = true")
+    @Query("select distinct atg from AvailableToGuest atg left join fetch atg.apartments a left join fetch a.typeOfHouse left join fetch a.user where atg.isActive = true")
     List<AvailableToGuest> findAllActive();
 }
