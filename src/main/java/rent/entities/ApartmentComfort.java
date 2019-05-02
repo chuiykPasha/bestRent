@@ -31,8 +31,7 @@ public class ApartmentComfort {
         this.id = id;
     }
 
-    public ApartmentComfort(Integer id, String name) {
-        this.id = id;
+    public ApartmentComfort(String name) {
         this.name = name;
         this.isActive = true;
     }

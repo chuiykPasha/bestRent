@@ -14,6 +14,7 @@ import rent.repository.ApartmentComfortRepository;
 
 @Controller
 @RequestMapping("/admin")
+@Transactional
 public class ApartmentComfortController {
     @Autowired
     private ApartmentComfortRepository apartmentComfortRepository;
@@ -42,8 +43,7 @@ public class ApartmentComfortController {
             return "/admin/apartmentComfort/create";
         }
 
-        apartmentComfort = new ApartmentComfort(apartmentComfortForm.getId(), apartmentComfortForm.getName());
-        apartmentComfortRepository.save(apartmentComfort);
+        apartmentComfortRepository.save(new ApartmentComfort(apartmentComfortForm.getName()));
         return "redirect:/admin/apartment-comfort";
     }
 
@@ -66,7 +66,8 @@ public class ApartmentComfortController {
             return "/admin/apartmentComfort/update";
         }
 
-        apartmentComfortRepository.save(new ApartmentComfort(apartmentComfortForm.getId(), apartmentComfortForm.getName()));
+        apartmentComfort = apartmentComfortRepository.getOne(apartmentComfortForm.getId());
+        apartmentComfort.setName(apartmentComfortForm.getName());
         return "redirect:/admin/apartment-comfort";
     }
 
@@ -79,7 +80,7 @@ public class ApartmentComfortController {
     @PostMapping("/apartment-comfort/delete")
     public String delete(ApartmentComfortForm apartmentComfortForm, Model model) {
         if(apartmentComfortForm.getId() != null) {
-            ApartmentComfort find = apartmentComfortRepository.getOne(apartmentComfortForm.getId());
+            ApartmentComfort find = apartmentComfortRepository.findById(apartmentComfortForm.getId()).get();
 
             if (!find.getApartments().isEmpty()) {
                 model.addAttribute("error", "You can't delete this because this value is used in other advertisements");
@@ -87,7 +88,6 @@ public class ApartmentComfortController {
             }
 
             find.setActive(false);
-            apartmentComfortRepository.save(find);
         }
 
         return "redirect:/admin/apartment-comfort";
