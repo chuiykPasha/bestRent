@@ -24,6 +24,7 @@ import java.util.Locale;
 
 @Configuration
 @EnableJpaRepositories(value = "rent.repository")
+@EnableTransactionManagement
 public class BeanConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
