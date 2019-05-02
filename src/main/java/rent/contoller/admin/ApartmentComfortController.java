@@ -2,6 +2,7 @@ package rent.contoller.admin;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +20,7 @@ public class ApartmentComfortController {
 
     @GetMapping("/apartment-comfort")
     public String index(Model model){
-        model.addAttribute("apartmentComforts", apartmentComfortRepository.findAll());
+        model.addAttribute("apartmentComforts", apartmentComfortRepository.findAllActive());
         return "/admin/apartmentComfort/index";
     }
 
