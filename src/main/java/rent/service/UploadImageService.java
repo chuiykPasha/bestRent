@@ -28,20 +28,13 @@ import java.util.*;
 
 @Service
 public class UploadImageService {
-    private final String Token = "5nsmQQ0lxRAAAAAAAAABIXytFyZh8DVGFd3VPIk9KO58T_ZlkoeOcIVxWrhgjH_T";
+    @Autowired
     private DbxClientV2 client;
     @Autowired
     private ApartmentImageRepository apartmentImageRepository;
     public volatile static boolean firstImageUploaded = false;
     @Autowired
     private UserRepository userRepository;
-
-    public UploadImageService(){
-        DbxRequestConfig config = DbxRequestConfig.newBuilder("RentImages")
-                .withHttpRequestor(new OkHttp3Requestor(OkHttp3Requestor.defaultOkHttpClient()))
-                .build();
-        client = new DbxClientV2(config, Token);
-    }
 
     public String uploadAvatar(String avatar, String userEmail) {
         String[] data = avatar.split(",");
