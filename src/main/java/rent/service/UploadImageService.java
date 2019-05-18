@@ -39,50 +39,12 @@ public class UploadImageService {
     public String uploadAvatar(String avatar, String userEmail) {
         String fileName = UUID.randomUUID().toString();
         String filePath = "/" + userEmail + "/" + fileName + ".jpg";
-        uploadUserAvatar(filePath, convertBase64ImagToInputStream(avatar));
+        uploadImage(filePath, convertAvatarBase64ImgToInputStream(avatar));
         User user = userRepository.findByEmail(userEmail);
         deleteUserAvatar(user.getAvatarPath());
         user.setAvatarPath(filePath);
-        user.setAvatarUrl(getUserAvatarUrl(filePath));
+        user.setAvatarUrl(getSharedUrlToImg(filePath));
         return user.getAvatarUrl();
-    }
-
-    private InputStream convertBase64ImagToInputStream(String img){
-        String[] data = img.split(",");
-        byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(data[1]);
-        return new ByteArrayInputStream(imageBytes);
-    }
-
-    private void uploadUserAvatar(String filePath, InputStream inputStream){
-        boolean isExceptionThrows = false;
-        do {
-            try {
-                client.files().uploadBuilder(filePath).withMode(WriteMode.ADD).uploadAndFinish(inputStream);
-            } catch (Exception ex) {
-                isExceptionThrows = true;
-            }
-        } while (isExceptionThrows);
-    }
-
-    private void deleteUserAvatar(String path){
-        if(path != null){
-            try {
-                client.files().deleteV2(path);
-            } catch (DbxException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private String getUserAvatarUrl(String filePath){
-        SharedLinkMetadata sharedLink = null;
-        try {
-            sharedLink = client.sharing().createSharedLinkWithSettings(filePath, SharedLinkSettings.newBuilder().withRequestedVisibility(RequestedVisibility.PUBLIC).build());
-        } catch (DbxException e) {
-            e.printStackTrace();
-        }
-
-        return getDlUriToDropBoxImage(sharedLink.getUrl());
     }
 
     public void uploadApartmentImages(List<String> images, String userName, int apartmentId, List<Double> sizeInBytes) {
@@ -124,19 +86,72 @@ public class UploadImageService {
             new Thread(new UploadImage(img, userName, apartmentId, sizeInBytes.get(i))).start();
         }
 
+        deleteNotUsingApartmentImgages(saveImagesLink, apartmentId);
+    }
+
+    private void deleteNotUsingApartmentImgages(Set<String> usingImg, int apartmentId){
         for(ApartmentImage image : apartmentImageRepository.findByApartmentId(apartmentId)){
-            if(!saveImagesLink.contains(image.getLinkPhoto())){
-                try {
-                    client.files().deleteV2(image.getPathPhoto());
-                    apartmentImageRepository.delete(image);
-                } catch (DbxException e) {
-                    e.printStackTrace();
-                }
+            if(!usingImg.contains(image.getLinkPhoto())){
+                deleteApartmentImg(image);
             }
         }
     }
 
-    public class UploadImage implements Runnable {
+    private void deleteApartmentImg(ApartmentImage img){
+        try {
+            client.files().deleteV2(img.getPathPhoto());
+            apartmentImageRepository.delete(img);
+        } catch (DbxException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private InputStream convertAvatarBase64ImgToInputStream(String img){
+        String[] data = img.split(",");
+        byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(data[1]);
+        return new ByteArrayInputStream(imageBytes);
+    }
+
+    private InputStream convertApartmentBase64ImgToInputStream(String img){
+        byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(img);
+        return new ByteArrayInputStream(imageBytes);
+    }
+
+    private void uploadImage(String filePath, InputStream inputStream){
+        boolean isExceptionThrows;
+        do {
+            isExceptionThrows = false;
+
+            try {
+                client.files().uploadBuilder(filePath).withMode(WriteMode.ADD).uploadAndFinish(inputStream);
+            } catch (Exception ex) {
+                isExceptionThrows = true;
+            }
+        } while (isExceptionThrows);
+    }
+
+    private void deleteUserAvatar(String path){
+        if(path != null){
+            try {
+                client.files().deleteV2(path);
+            } catch (DbxException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private String getSharedUrlToImg(String filePath){
+        SharedLinkMetadata sharedLink = null;
+        try {
+            sharedLink = client.sharing().createSharedLinkWithSettings(filePath, SharedLinkSettings.newBuilder().withRequestedVisibility(RequestedVisibility.PUBLIC).build());
+        } catch (DbxException e) {
+            e.printStackTrace();
+        }
+
+        return sharedLink.getUrl().replace("www.dropbox.com", "dl.dropboxusercontent.com").replace("?dl=0", "");
+    }
+
+    private class UploadImage implements Runnable {
         private String imgBase64;
         private String userEmail;
         private int apartmentId;
@@ -150,38 +165,13 @@ public class UploadImageService {
         }
 
         public void run() {
-            byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(imgBase64);
-            InputStream inputStream = new ByteArrayInputStream(imageBytes);
+            InputStream inputStream = convertApartmentBase64ImgToInputStream(imgBase64);
             String fileName = UUID.randomUUID().toString();
-            try {
-                String filePath = "/" + userEmail + "/" + fileName + ".jpg";
-                boolean isExceptionThrows;
-                do {
-                    isExceptionThrows = false;
-
-                    try {
-                        client.files().uploadBuilder(filePath).withMode(WriteMode.ADD).uploadAndFinish(inputStream);
-                    } catch (RateLimitException exception) {
-                        isExceptionThrows = true;
-                    } catch (RetryException exception) {
-                        isExceptionThrows = true;
-                    }
-                } while (isExceptionThrows);
-
-                SharedLinkMetadata slm = client.sharing().createSharedLinkWithSettings(filePath, SharedLinkSettings.newBuilder().withRequestedVisibility(RequestedVisibility.PUBLIC).build());
-                String url = slm.getUrl();
-                apartmentImageRepository.save(new ApartmentImage(filePath, getDlUriToDropBoxImage(url), new Apartment(apartmentId), sizeInBytes));
-                firstImageUploaded = true;
-                Time.sleep(500);
-            } catch (DbxException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            String filePath = "/" + userEmail + "/" + fileName + ".jpg";
+            uploadImage(filePath, inputStream);
+            apartmentImageRepository.save(new ApartmentImage(filePath, getSharedUrlToImg(filePath), new Apartment(apartmentId), sizeInBytes));
+            firstImageUploaded = true;
+            Time.sleep(500);
         }
-    }
-
-    private String getDlUriToDropBoxImage(String oldUrl) {
-        return oldUrl.replace("www.dropbox.com", "dl.dropboxusercontent.com").replace("?dl=0", "");
     }
 }
