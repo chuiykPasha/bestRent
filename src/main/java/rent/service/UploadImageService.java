@@ -32,58 +32,57 @@ public class UploadImageService {
     private DbxClientV2 client;
     @Autowired
     private ApartmentImageRepository apartmentImageRepository;
-    public volatile static boolean firstImageUploaded = false;
     @Autowired
     private UserRepository userRepository;
+    public volatile static boolean firstImageUploaded = false;
 
     public String uploadAvatar(String avatar, String userEmail) {
-        String[] data = avatar.split(",");
-        byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(data[1]);
-        InputStream inputStream = new ByteArrayInputStream(imageBytes);
         String fileName = UUID.randomUUID().toString();
-
         String filePath = "/" + userEmail + "/" + fileName + ".jpg";
+        uploadUserAvatar(filePath, convertBase64ImagToInputStream(avatar));
+        User user = userRepository.findByEmail(userEmail);
+        deleteUserAvatar(user.getAvatarPath());
+        user.setAvatarPath(filePath);
+        user.setAvatarUrl(getUserAvatarUrl(filePath));
+        return user.getAvatarUrl();
+    }
 
-        boolean isExceptionThrows;
+    private InputStream convertBase64ImagToInputStream(String img){
+        String[] data = img.split(",");
+        byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(data[1]);
+        return new ByteArrayInputStream(imageBytes);
+    }
+
+    private void uploadUserAvatar(String filePath, InputStream inputStream){
+        boolean isExceptionThrows = false;
         do {
-            isExceptionThrows = false;
-
             try {
                 client.files().uploadBuilder(filePath).withMode(WriteMode.ADD).uploadAndFinish(inputStream);
-            } catch (RateLimitException exception) {
+            } catch (Exception ex) {
                 isExceptionThrows = true;
-            } catch (RetryException exception) {
-                isExceptionThrows = true;
-            } catch (UploadErrorException e) {
-                e.printStackTrace();
-            } catch (DbxException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         } while (isExceptionThrows);
+    }
 
-        SharedLinkMetadata slm = null;
+    private void deleteUserAvatar(String path){
+        if(path != null){
+            try {
+                client.files().deleteV2(path);
+            } catch (DbxException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private String getUserAvatarUrl(String filePath){
+        SharedLinkMetadata sharedLink = null;
         try {
-            slm = client.sharing().createSharedLinkWithSettings(filePath, SharedLinkSettings.newBuilder().withRequestedVisibility(RequestedVisibility.PUBLIC).build());
+            sharedLink = client.sharing().createSharedLinkWithSettings(filePath, SharedLinkSettings.newBuilder().withRequestedVisibility(RequestedVisibility.PUBLIC).build());
         } catch (DbxException e) {
             e.printStackTrace();
         }
-        String url = slm.getUrl();
-        User user = userRepository.findByEmail(userEmail);
 
-        if(user.getAvatarUrl() != null) {
-            try {
-                client.files().deleteV2(user.getAvatarPath());
-            } catch (DbxException e) {
-                e.printStackTrace();
-            }
-        }
-
-        user.setAvatarPath(filePath);
-        user.setAvatarUrl(getDlUriToDropBoxImage(url));
-        userRepository.save(user);
-        return user.getAvatarUrl();
+        return getDlUriToDropBoxImage(sharedLink.getUrl());
     }
 
     public void uploadApartmentImages(List<String> images, String userName, int apartmentId, List<Double> sizeInBytes) {
