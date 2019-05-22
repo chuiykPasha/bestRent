@@ -10,6 +10,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -60,9 +62,6 @@ public class ApartmentController {
     private RoomRepository roomRepository;
     @Autowired
     private BookingService bookingService;
-
-    private ApartmentController() {
-    }
 
     @RequestMapping(value = {"/"}, method = RequestMethod.GET)
     public String main(@RequestParam(name = "location", required = false) String location, @RequestParam(name = "page", required = false) Integer page, Model model) {
@@ -180,25 +179,38 @@ public class ApartmentController {
         }
 
         final UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Set<ApartmentComfort> selectedComforts = new HashSet<>();
-
-        for(int selected : apartmentInfoForm.getSelectedComforts()) {
-            selectedComforts.add(new ApartmentComfort(selected));
-        }
+        Set<ApartmentComfort> selectedComforts = getSelectedComforts(apartmentInfoForm.getSelectedComforts());
 
         Apartment apartment = new Apartment(apartmentInfoForm.getDescription(), apartmentLocationForm.getLocation(), apartmentInfoForm.getPrice().floatValue(),
                 apartmentInfoForm.getMaxNumberOfGuests(),
-                new TypeOfHouse(apartmentInfoForm.getTypeOfHouseId(), null),
-                new AvailableToGuest(apartmentInfoForm.getAvailableToGuestId(), null), selectedComforts, apartmentInfoForm.getTitle(), user,
+                typeOfHouseRepository.getOne(apartmentInfoForm.getTypeOfHouseId()),
+                availableToGuestRepository.getOne(apartmentInfoForm.getAvailableToGuestId()), selectedComforts, apartmentInfoForm.getTitle(), user,
                     apartmentLocationForm.getLongitude(), apartmentLocationForm.getLatitude(), apartmentInfoForm.getNumberOfRooms());
 
         final int apartmentId = apartmentRepository.save(apartment).getId();
 
         uploadImageService.uploadApartmentImages(apartmentImagesForm.getImages(), userDetails.getUsername(), apartmentId, apartmentImagesForm.getImagesSize());
         sessionStatus.setComplete();
+        updateUserRole(user);
+        waitForUploadFirstImg();
+        saveApartmentRooms(apartmentInfoForm, apartmentId);
 
+        return "redirect:/";
+    }
+
+    private Set<ApartmentComfort> getSelectedComforts(List<Integer> selectedComforts){
+        Set<ApartmentComfort> result = new HashSet<>();
+
+        for(int selected : selectedComforts) {
+            result.add(apartmentComfortRepository.getOne(selected));
+        }
+
+        return result;
+    }
+
+    private void waitForUploadFirstImg(){
         while (true) {
-            if(UploadImageService.firstImageUploaded == true) {
+            if(UploadImageService.firstImageUploaded) {
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException e) {
@@ -207,12 +219,18 @@ public class ApartmentController {
                 break;
             }
         }
+    }
 
+    private void updateUserRole(User user){
         if(!user.getRoles().contains(Role.LANDLORD)) {
             user.getRoles().add(Role.LANDLORD);
             userRepository.save(user);
         }
 
+        addNewUserRoleInSession(Role.LANDLORD);
+    }
+
+    private void saveApartmentRooms(ApartmentInfoForm apartmentInfoForm, int apartmentId){
         if(apartmentInfoForm.getAvailableToGuestId() == availableToGuestRepository.findByNameAndIsActiveTrue("Private room").getId()){
             List<Room> rooms = new ArrayList<>();
 
@@ -222,10 +240,6 @@ public class ApartmentController {
 
             roomRepository.saveAll(rooms);
         }
-
-        addNewUserRoleInSession(Role.LANDLORD);
-
-        return "redirect:/";
     }
 
 

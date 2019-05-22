@@ -91,4 +91,9 @@ public class Apartment {
         this.numberOfRooms = numberOfRooms;
         this.isActive = true;
     }
+
+    public void setImage(ApartmentImage image){
+        images.add(image);
+        image.setApartment(this);
+    }
 }
