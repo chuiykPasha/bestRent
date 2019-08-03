@@ -8,15 +8,15 @@ import java.util.List;
 
 @Getter
 @Setter
-public class BookingDto {
+public class BookingResultDto {
     List<LocalDate> reservedDates;
     private String message;
 
-    public BookingDto(String message) {
+    public BookingResultDto(String message) {
         this.message = message;
     }
 
-    public BookingDto(List<LocalDate> reservedDates, String message) {
+    public BookingResultDto(List<LocalDate> reservedDates, String message) {
         this.reservedDates = reservedDates;
         this.message = message;
     }
