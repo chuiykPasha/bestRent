@@ -38,8 +38,6 @@ import java.util.stream.Collectors;
 public class ApartmentController {
     @Autowired
     private ApartmentRepository apartmentRepository;
-    @Autowired
-    private ApartmentCalendarRepository apartmentCalendarRepository;
     private final int sizeApartmentsInPage = 9;
     private final String SHARED_ROOM = "Shared room";
     private final String ENTIRE_ROOM = "Entire apartment";
