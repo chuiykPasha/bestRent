@@ -14,6 +14,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import rent.entities.*;
@@ -29,8 +30,8 @@ import java.util.List;
 import java.util.Set;
 
 @Controller
-@Transactional
-public class AddApartment {
+@SessionAttributes(types = {ApartmentInfoForm.class, ApartmentLocationForm.class})
+public class AddApartmentController {
     @Autowired
     private ApartmentComfortRepository apartmentComfortRepository;
     @Autowired
@@ -92,9 +93,10 @@ public class AddApartment {
 
     @PostMapping("/apartment-create-step-two")
     public String moveStepThree(@Valid @ModelAttribute ApartmentLocationForm apartmentLocationForm, BindingResult result) {
-        if(result.hasErrors()) {
+        /*if(result.hasErrors()) {
             return "/apartment/createStepTwo";
         }
+        */
 
         return "redirect:/apartment-create-step-three";
     }

@@ -11,7 +11,7 @@
             <div class="col-12 form-group">
                 <label for="location">Location</label>
                 <input class="form-control" placeholder="Location" type="text"
-                       th:value="${apartmentLocationForm.location}" name="location" id="location" required readonly/>
+                       th:value="${apartmentLocationForm.location}" name="location" id="location" required/>
                 <p class="alert alert-danger mt-2" role="alert" th:if="${#fields.hasErrors('location')}"
                    th:errors="*{location}"></p>
                 <input type="hidden" name="latitude" id="latitude">
