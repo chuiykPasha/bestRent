@@ -23,7 +23,7 @@ public class AvailableToGuestController {
     @GetMapping("/available-to-guest")
     @Transactional(readOnly = true)
     public String index(Model model) {
-        model.addAttribute("availableToGuests", availableToGuestRepository.findAllActive());
+        model.addAttribute("availableToGuests", availableToGuestRepository.getAll());
         return "/admin/availableToGuest/index";
     }
 
@@ -38,9 +38,7 @@ public class AvailableToGuestController {
             return "/admin/availableToGuest/create";
         }
 
-        AvailableToGuest availableToGuest = availableToGuestRepository.findByNameAndIsActiveTrue(availableToGuestForm.getName());
-
-        if(availableToGuest != null) {
+        if(availableToGuestRepository.isExistsByName(availableToGuestForm.getName())) {
             bindingResult.rejectValue("name", null, "Name already exists");
             return "/admin/availableToGuest/create";
         }
@@ -61,14 +59,12 @@ public class AvailableToGuestController {
             return "/admin/availableToGuest/update";
         }
 
-        AvailableToGuest update = availableToGuestRepository.findByNameAndIsActiveTrue(availableToGuestForm.getName());
-
-        if(update != null) {
+        if(availableToGuestRepository.isExistsByName(availableToGuestForm.getName())) {
             bindingResult.rejectValue("name", null, "Name already exists");
             return "/admin/availableToGuest/update";
         }
 
-        update = availableToGuestRepository.getOne(availableToGuestForm.getId());
+        AvailableToGuest update = availableToGuestRepository.getOne(availableToGuestForm.getId());
         update.setName(availableToGuestForm.getName());
         return "redirect:/admin/available-to-guest";
     }

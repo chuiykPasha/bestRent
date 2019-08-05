@@ -52,9 +52,9 @@ public class AddApartmentController {
         ApartmentInfoForm apartmentInfoForm = new ApartmentInfoForm();
         apartmentInfoForm.setComforts(apartmentComfortRepository.getAll());
         apartmentInfoForm.setTypeOfHouses(typeOfHouseRepository.findByIsActiveTrue());
-        apartmentInfoForm.setAvailableToGuests(availableToGuestRepository.findByIsActiveTrue());
+        apartmentInfoForm.setAvailableToGuests(availableToGuestRepository.getAll());
         model.addAttribute("apartmentInfoForm", apartmentInfoForm);
-        model.addAttribute("privateRoomId", availableToGuestRepository.findByNameAndIsActiveTrue("Private room").getId());
+        model.addAttribute("privateRoomId", availableToGuestRepository.getByNameAndIsActiveTrue("Private room").getId());
 
         return "/apartment/createStepOne";
     }
@@ -65,7 +65,7 @@ public class AddApartmentController {
             return "/apartment/createStepOne";
         }
 
-        int privateRoomId = availableToGuestRepository.findByNameAndIsActiveTrue("Private room").getId();
+        int privateRoomId = availableToGuestRepository.getByNameAndIsActiveTrue("Private room").getId();
 
         if(apartmentInfoForm.getNumberOfRooms() > apartmentInfoForm.getMaxNumberOfGuests()){
             result.rejectValue("maxNumberOfGuests", null, "Check the maximum number of guests");
@@ -177,7 +177,7 @@ public class AddApartmentController {
     }
 
     private void saveApartmentRooms(ApartmentInfoForm apartmentInfoForm, int apartmentId){
-        if(apartmentInfoForm.getAvailableToGuestId().equals(availableToGuestRepository.findByNameAndIsActiveTrue("Private room").getId())){
+        if(apartmentInfoForm.getAvailableToGuestId().equals(availableToGuestRepository.getByNameAndIsActiveTrue("Private room").getId())){
             List<Room> rooms = new ArrayList<>();
 
             for(int guestsInRoom: apartmentInfoForm.getGuestsInRoom()){
