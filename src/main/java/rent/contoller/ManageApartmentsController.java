@@ -113,7 +113,7 @@ public class ManageApartmentsController {
     @GetMapping("/change-apartment-info/{apartment}")
     public String changeApartmentInfo(Apartment apartment, Model model){
         ChangeApartmentInfoForm changeApartmentInfoForm = new ChangeApartmentInfoForm(apartment.getId(), apartment.getDescription(), BigDecimal.valueOf(apartment.getPrice()),
-                apartment.getMaxNumberOfGuests(), apartment.getTitle() ,apartmentComfortRepository.findByIsActiveTrue(), apartment.getNumberOfRooms());
+                apartment.getMaxNumberOfGuests(), apartment.getTitle() ,apartmentComfortRepository.getAll(), apartment.getNumberOfRooms());
 
         model.addAttribute("changeApartmentInfoForm", changeApartmentInfoForm);
         model.addAttribute("selectedChosen", apartment.getApartmentComforts());

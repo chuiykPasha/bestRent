@@ -22,7 +22,7 @@ public class ApartmentComfortController {
     @GetMapping("/apartment-comfort")
     @Transactional(readOnly = true)
     public String index(Model model){
-        model.addAttribute("apartmentComforts", apartmentComfortRepository.findAllActive());
+        model.addAttribute("apartmentComforts", apartmentComfortRepository.getAll());
         return "/admin/apartmentComfort/index";
     }
 
@@ -37,9 +37,7 @@ public class ApartmentComfortController {
             return "/admin/apartmentComfort/create";
         }
 
-        ApartmentComfort apartmentComfort = apartmentComfortRepository.findByNameAndIsActiveTrue(apartmentComfortForm.getName());
-
-        if(apartmentComfort != null) {
+        if(apartmentComfortRepository.isExistsByName(apartmentComfortForm.getName())) {
             result.rejectValue("name", null, "Name already exists");
             return "/admin/apartmentComfort/create";
         }
@@ -60,14 +58,12 @@ public class ApartmentComfortController {
             return "/admin/apartmentComfort/update";
         }
 
-        ApartmentComfort apartmentComfort = apartmentComfortRepository.findByNameAndIsActiveTrue(apartmentComfortForm.getName());
-
-        if(apartmentComfort != null) {
+        if(apartmentComfortRepository.isExistsByName(apartmentComfortForm.getName())) {
             result.rejectValue("name", null, "Name already exists");
             return "/admin/apartmentComfort/update";
         }
 
-        apartmentComfort = apartmentComfortRepository.getOne(apartmentComfortForm.getId());
+        ApartmentComfort apartmentComfort = apartmentComfortRepository.getOne(apartmentComfortForm.getId());
         apartmentComfort.setName(apartmentComfortForm.getName());
         return "redirect:/admin/apartment-comfort";
     }
