@@ -90,11 +90,5 @@ public class ApartmentController {
         model.addAttribute("disabledDates", dates);
         return "/apartment/showApartment";
     }
-
-    @GetMapping("my-advertisements")
-    public String showMyAdvertisements(@AuthenticationPrincipal User user, Model model) {
-        model.addAttribute("apartments", apartmentRepository.findByUserIdAndIsActiveTrueOrderByIdDesc(user.getId()));
-        return "myAdvertisements";
-    }
 }
 

@@ -40,6 +40,12 @@ public class ManageApartmentsController {
     @Autowired
     private UploadImageService uploadImageService;
 
+    @GetMapping("my-advertisements")
+    public String showMyAdvertisements(@AuthenticationPrincipal User user, Model model) {
+        model.addAttribute("apartments", apartmentRepository.findByUserIdAndIsActiveTrueOrderByIdDesc(user.getId()));
+        return "myAdvertisements";
+    }
+
     @GetMapping("/change-apartment-location/{apartment}")
     public String changeApartmentLocation(Apartment apartment, ChangeApartmentLocationForm changeLocationForm, Model model){
         changeLocationForm.setLocation(apartment.getLocation());
