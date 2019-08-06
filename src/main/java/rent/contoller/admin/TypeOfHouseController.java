@@ -24,7 +24,7 @@ public class TypeOfHouseController {
     @GetMapping("/type-of-house")
     @Transactional(readOnly = true)
     public String index(Model model) {
-        model.addAttribute("typeOfHouses", typeOfHouseRepository.findAllActive());
+        model.addAttribute("typeOfHouses", typeOfHouseRepository.getAll());
         return "/admin/typeOfHouse/index";
     }
 
@@ -39,9 +39,7 @@ public class TypeOfHouseController {
             return "/admin/typeOfHouse/create";
         }
 
-        TypeOfHouse typeOfHouse = typeOfHouseRepository.findByNameAndIsActiveTrue(typeOfHouseForm.getName());
-
-        if(typeOfHouse != null) {
+        if(typeOfHouseRepository.isExistsByName(typeOfHouseForm.getName())) {
             result.rejectValue("name", null, "Name already exists");
             return "/admin/typeOfHouse/create";
         }
@@ -62,14 +60,12 @@ public class TypeOfHouseController {
             return "/admin/typeOfHouse/update";
         }
 
-        TypeOfHouse typeOfHouse = typeOfHouseRepository.findByNameAndIsActiveTrue(typeOfHouseForm.getName());
-
-        if(typeOfHouse != null) {
+        if(typeOfHouseRepository.isExistsByName(typeOfHouseForm.getName())) {
             result.rejectValue("name", null, "Name already exists");
             return "/admin/typeOFHouse/update";
         }
 
-        typeOfHouse = typeOfHouseRepository.getOne(typeOfHouseForm.getId());
+        TypeOfHouse typeOfHouse = typeOfHouseRepository.getOne(typeOfHouseForm.getId());
         typeOfHouse.setName(typeOfHouseForm.getName());
         return "redirect:/admin/type-of-house";
     }

@@ -51,7 +51,7 @@ public class AddApartmentController {
     public String fillApartmentInfo(Model model){
         ApartmentInfoForm apartmentInfoForm = new ApartmentInfoForm();
         apartmentInfoForm.setComforts(apartmentComfortRepository.getAll());
-        apartmentInfoForm.setTypeOfHouses(typeOfHouseRepository.findByIsActiveTrue());
+        apartmentInfoForm.setTypeOfHouses(typeOfHouseRepository.getAll());
         apartmentInfoForm.setAvailableToGuests(availableToGuestRepository.getAll());
         model.addAttribute("apartmentInfoForm", apartmentInfoForm);
         model.addAttribute("privateRoomId", availableToGuestRepository.getByNameAndIsActiveTrue("Private room").getId());
