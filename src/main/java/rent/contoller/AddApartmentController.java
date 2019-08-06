@@ -48,14 +48,11 @@ public class AddApartmentController {
     protected RoomRepository roomRepository;
 
     @GetMapping("/apartment-create-step-one")
-    public String fillApartmentInfo(Model model){
-        ApartmentInfoForm apartmentInfoForm = new ApartmentInfoForm();
+    public String fillApartmentInfo(ApartmentInfoForm apartmentInfoForm, Model model){
         apartmentInfoForm.setComforts(apartmentComfortRepository.getAll());
         apartmentInfoForm.setTypeOfHouses(typeOfHouseRepository.getAll());
         apartmentInfoForm.setAvailableToGuests(availableToGuestRepository.getAll());
-        model.addAttribute("apartmentInfoForm", apartmentInfoForm);
-        model.addAttribute("privateRoomId", availableToGuestRepository.getByNameAndIsActiveTrue("Private room").getId());
-
+        model.addAttribute("privateRoomId", findIdFromAvailableToGuests(apartmentInfoForm.getAvailableToGuests(),"Private Room"));
         return "/apartment/createStepOne";
     }
 
@@ -65,19 +62,18 @@ public class AddApartmentController {
             return "/apartment/createStepOne";
         }
 
-        int privateRoomId = availableToGuestRepository.getByNameAndIsActiveTrue("Private room").getId();
-
-        if(apartmentInfoForm.getNumberOfRooms() > apartmentInfoForm.getMaxNumberOfGuests()){
-            result.rejectValue("maxNumberOfGuests", null, "Check the maximum number of guests");
+        final int privateRoomId = availableToGuestRepository.getByNameAndIsActiveTrue("Private room").getId();
+        if(isNumberOfRoomsMoreThanGuests(apartmentInfoForm.getNumberOfRooms(), apartmentInfoForm.getMaxNumberOfGuests())){
+            result.rejectValue("maxNumberOfGuests", null, "Check the max number of guests.Number of rooms more than guests.");
             model.addAttribute("privateRoomId", privateRoomId);
             return "/apartment/createStepOne";
         }
 
         if(apartmentInfoForm.getAvailableToGuestId() == privateRoomId){
-            int countGuestsInRooms = apartmentInfoForm.getGuestsInRoom().stream().mapToInt(i -> i).sum();
+            final int countGuestsInRooms = apartmentInfoForm.getGuestsInRoom().stream().mapToInt(i -> i).sum();
 
-            if(countGuestsInRooms != apartmentInfoForm.getMaxNumberOfGuests()){
-                result.rejectValue("guestsInRoom", null, "Maximum number of guests and guests in the room.");
+            if(isMaxNumberOfGuestsNotEqualsCountGuestsInRooms(countGuestsInRooms, apartmentInfoForm.getMaxNumberOfGuests())){
+                result.rejectValue("guestsInRoom", null, "Max number of guests and guests in the rooms not equals.");
                 model.addAttribute("privateRoomId", privateRoomId);
                 return "/apartment/createStepOne";
             }
@@ -118,7 +114,7 @@ public class AddApartmentController {
         }
 
         final UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Set<ApartmentComfort> selectedComforts = getSelectedComforts(apartmentInfoForm.getSelectedComforts());
+        Set<ApartmentComfort> selectedComforts = getComfortsToSave(apartmentInfoForm.getSelectedComforts());
 
         Apartment apartment = new Apartment(apartmentInfoForm.getDescription(), apartmentLocationForm.getLocation(), apartmentInfoForm.getPrice().floatValue(),
                 apartmentInfoForm.getMaxNumberOfGuests(),
@@ -136,11 +132,15 @@ public class AddApartmentController {
         return "redirect:/";
     }
 
-    private Set<ApartmentComfort> getSelectedComforts(List<Integer> selectedComforts){
+    private Set<ApartmentComfort> getComfortsToSave(List<Integer> selectedComforts){
         Set<ApartmentComfort> result = new HashSet<>();
+        List<ApartmentComfort> apartmentComforts = apartmentComfortRepository.getAll();
 
         for(int selected : selectedComforts) {
-            result.add(apartmentComfortRepository.getOne(selected));
+            result.add(apartmentComforts.stream()
+                    .filter(i -> i.getId() == selected)
+                    .findAny()
+                    .get());
         }
 
         return result;
@@ -186,5 +186,21 @@ public class AddApartmentController {
 
             roomRepository.saveAll(rooms);
         }
+    }
+
+    private int findIdFromAvailableToGuests(List<AvailableToGuest> availableToGuests, final String find){
+        return availableToGuests.stream()
+                .filter(i -> i.getName().equals(find))
+                .findAny()
+                .get()
+                .getId();
+    }
+
+    private boolean isNumberOfRoomsMoreThanGuests(int numberOfRooms, int maxNumberOfGuests){
+        return numberOfRooms > maxNumberOfGuests;
+    }
+
+    private boolean isMaxNumberOfGuestsNotEqualsCountGuestsInRooms(int countGuestsInRooms, int maxNumberOfGuests){
+        return countGuestsInRooms != maxNumberOfGuests;
     }
 }
