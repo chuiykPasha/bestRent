@@ -3,10 +3,12 @@ package rent.contoller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import rent.dto.MailDto;
 import rent.entities.*;
 import rent.form.ChangeApartmentImagesForm;
@@ -26,6 +28,7 @@ import java.time.LocalDate;
 import java.util.*;
 
 @Controller
+@Transactional
 public class ManageApartmentsController {
     @Autowired
     private ApartmentRepository apartmentRepository;
@@ -42,7 +45,7 @@ public class ManageApartmentsController {
 
     @GetMapping("my-advertisements")
     public String showMyAdvertisements(@AuthenticationPrincipal User user, Model model) {
-        model.addAttribute("apartments", apartmentRepository.findByUserIdAndIsActiveTrueOrderByIdDesc(user.getId()));
+        model.addAttribute("apartments", apartmentRepository.getAdvertisementsByUserId(user.getId()));
         return "myAdvertisements";
     }
 
@@ -62,35 +65,15 @@ public class ManageApartmentsController {
             return "/apartment/changeLocation";
         }
 
-        Apartment changeApartment = apartmentRepository.getOne(changeLocationForm.getApartmentId());
+        Apartment changeApartment = apartmentRepository.findById(changeLocationForm.getApartmentId()).get();
 
-        if(!changeApartment.getCalendars().isEmpty()){
-            List<ApartmentCalendar> booking = apartmentCalendarRepository.getFutureBooking(changeLocationForm.getApartmentId(), java.sql.Date.valueOf(LocalDate.now()));
-            Set<String> uniqueUsersEmail = new HashSet<>();
-            for(ApartmentCalendar item : booking) {
-                if(uniqueUsersEmail.contains(item.getUser().getEmail())){
-                    continue;
-                }
-
-                MailDto mail = new MailDto();
-                mail.setFrom("best-rent.tk");
-                mail.setSubject("BookingDto address changed");
-                mail.setTo(item.getUser().getEmail());
-                Map<String, Object> model = new HashMap<>();
-                model.put("from", changeApartment.getLocation());
-                model.put("to", changeLocationForm.getLocation());
-                model.put("user", changeApartment.getUser());
-                model.put("signature", "https://best-rent.tk");
-                mail.setModel(model);
-                emailService.sendEmail(mail, "email/change-apartment-location");
-                uniqueUsersEmail.add(item.getUser().getEmail());
-            }
+        if(hasBooking(changeApartment)){
+            sendEmailsAboutChangedLocation(changeApartment, changeLocationForm.getLocation());
         }
 
         changeApartment.setLocation(changeLocationForm.getLocation());
         changeApartment.setLatitude(changeLocationForm.getLatitude());
         changeApartment.setLongitude(changeLocationForm.getLongitude());
-        apartmentRepository.save(changeApartment);
 
         return "redirect:/my-advertisements";
     }
@@ -104,10 +87,10 @@ public class ManageApartmentsController {
     }
 
     @PostMapping("/change-apartment-images")
-    public String changeApartmentImagesSave(@Valid ChangeApartmentImagesForm changeApartmentImagesForm, BindingResult result, @AuthenticationPrincipal User user, Model model){
+    public String changeApartmentImagesSave(@Valid ChangeApartmentImagesForm changeApartmentImagesForm, @AuthenticationPrincipal User user, Model model){
         if(changeApartmentImagesForm.getImages().isEmpty()){
             model.addAttribute("changeApartmentImagesForm", changeApartmentImagesForm);
-            model.addAttribute("images", apartmentRepository.getOne(changeApartmentImagesForm.getApartmentId()));
+            model.addAttribute("images", apartmentRepository.findById(changeApartmentImagesForm.getApartmentId()).get());
 
             return "/apartment/changeApartmentImages";
         }
@@ -134,36 +117,30 @@ public class ManageApartmentsController {
 
     @PostMapping("/change-apartment-info")
     public String changeApartmentInfoSave(@Valid ChangeApartmentInfoForm changeApartmentInfoForm, BindingResult bindingResult, Model model){
+        Apartment apartment = apartmentRepository.findById(changeApartmentInfoForm.getId()).get();
+
         if(bindingResult.hasErrors()){
+            changeApartmentInfoForm.setComforts(new ArrayList<>(apartment.getApartmentComforts()));
+            model.addAttribute("changeApartmentInfoForm", changeApartmentInfoForm);
+            model.addAttribute("selectedChosen", apartment.getApartmentComforts());
+
+            if(apartment.getAvailableToGuest().getName().equals("Private room")) {
+                model.addAttribute("guestsInRooms", apartment.getRooms());
+                model.addAttribute("availableToGuests", "Private room");
+            }
+
             return "/apartment/changeApartmentInfo";
         }
 
-        Apartment apartment = apartmentRepository.findById(changeApartmentInfoForm.getId()).get();
-
         if(apartment.getAvailableToGuest().getName().equals("Private room") && changeApartmentInfoForm.getMaxNumberOfGuests() != apartment.getMaxNumberOfGuests()){
-            List<Room> rooms = roomRepository.findByApartmentId(changeApartmentInfoForm.getId());
-
-            for(int i = 0; i < changeApartmentInfoForm.getGuestsInRoom().size(); i++){
-                rooms.get(i).setMaxNumberOfGuests(changeApartmentInfoForm.getGuestsInRoom().get(i));
-            }
-
-            roomRepository.saveAll(rooms);
+            changedMaxNumberOfGuestsInEveryRoom(apartment.getId(), changeApartmentInfoForm.getGuestsInRoom());
         }
 
         apartment.setMaxNumberOfGuests(changeApartmentInfoForm.getMaxNumberOfGuests());
         apartment.setTitle(changeApartmentInfoForm.getTitle());
         apartment.setDescription(changeApartmentInfoForm.getDescription());
         apartment.setPrice(changeApartmentInfoForm.getPrice().floatValue());
-
-        apartment.getApartmentComforts().clear();
-        Set<ApartmentComfort> comforts = new HashSet<>();
-
-        for(int comfort : changeApartmentInfoForm.getSelectedComforts()){
-            comforts.add(new ApartmentComfort(comfort));
-        }
-
-        apartment.setApartmentComforts(comforts);
-        apartmentRepository.save(apartment);
+        updateComfortsInApartment(apartment, changeApartmentInfoForm.getSelectedComforts());
 
         return "redirect:/my-advertisements";
     }
@@ -185,40 +162,89 @@ public class ManageApartmentsController {
             return "redirect:/my-advertisements";
         }
 
-        Set<String> emailsUsers = new HashSet<>();
-        Set<ApartmentCalendar> canceled = new HashSet<>();
-
-        for(ApartmentCalendar apartmentCalendar : apartment.getCalendars()){
-            if(!emailsUsers.contains(apartmentCalendar.getUser().getEmail())){
-                emailsUsers.add(apartmentCalendar.getUser().getEmail());
-                canceled.add(apartmentCalendar);
-            }
-
+        Set<ApartmentCalendar> canceled = apartment.getCalendars();
+        setApartmentOrderToCancel(canceled);
+        for(ApartmentCalendar apartmentCalendar : canceled){
             apartmentCalendar.setCanceled(true);
         }
-
-        Thread sendEmails = new Thread(){
-            public void run(){
-                for(ApartmentCalendar apartmentCalendar : canceled) {
-                    MailDto mail = new MailDto();
-                    mail.setFrom("best-rent.tk");
-                    mail.setSubject("Your reservation has been canceled");
-                    mail.setTo(apartmentCalendar.getUser().getEmail());
-                    Map<String, Object> model = new HashMap<>();
-                    model.put("address", apartmentCalendar.getApartment().getLocation());
-                    model.put("user", apartmentCalendar.getUser());
-                    model.put("signature", "https://best-rent.tk");
-                    mail.setModel(model);
-                    emailService.sendEmail(mail, "email/cancel-reservation");
-                }
-            }
-        };
-
-        sendEmails.start();
-
+        sendEmailsAboutRemoveApartment(canceled);
         apartment.setActive(false);
-        apartmentRepository.save(apartment);
 
         return "redirect:/my-advertisements";
+    }
+
+    private boolean hasBooking(Apartment apartment){
+        return !apartment.getCalendars().isEmpty();
+    }
+
+    private void sendEmailsAboutChangedLocation(Apartment apartment , String newLocation){
+        List<ApartmentCalendar> booking = apartmentCalendarRepository.getFutureBooking(apartment.getId(), java.sql.Date.valueOf(LocalDate.now()));
+        Set<String> uniqueEmails = getUniqueEmails(booking);
+
+        for(String email : uniqueEmails){
+            MailDto mail = new MailDto();
+            mail.setFrom("best-rent.tk");
+            mail.setSubject("BookingDto address changed");
+            mail.setTo(email);
+            Map<String, Object> model = new HashMap<>();
+            model.put("from", apartment.getLocation());
+            model.put("to", newLocation);
+            model.put("user", apartment.getUser());
+            model.put("signature", "https://best-rent.tk");
+            mail.setModel(model);
+            emailService.sendEmail(mail, "email/change-apartment-location");
+        }
+
+    }
+
+    private void sendEmailsAboutRemoveApartment(Set<ApartmentCalendar> canceled){
+        for (ApartmentCalendar apartmentCalendar : canceled) {
+            MailDto mail = new MailDto();
+            mail.setFrom("best-rent.tk");
+            mail.setSubject("Your reservation has been canceled");
+            mail.setTo(apartmentCalendar.getUser().getEmail());
+            Map<String, Object> model = new HashMap<>();
+            model.put("address", apartmentCalendar.getApartment().getLocation());
+            model.put("user", apartmentCalendar.getUser());
+            model.put("signature", "https://best-rent.tk");
+            mail.setModel(model);
+            emailService.sendEmail(mail, "email/cancel-reservation");
+        }
+    }
+
+    private void setApartmentOrderToCancel(Set<ApartmentCalendar> canceled){
+        for(ApartmentCalendar apartmentCalendar : canceled){
+            apartmentCalendar.setCanceled(true);
+        }
+    }
+
+    private Set<String> getUniqueEmails(List<ApartmentCalendar> booking) {
+        Set<String> uniqueEmails = new HashSet<>();
+        for(ApartmentCalendar apartmentCalendar : booking){
+            uniqueEmails.add(apartmentCalendar.getUser().getEmail());
+        }
+
+        return uniqueEmails;
+    }
+
+    private void changedMaxNumberOfGuestsInEveryRoom(int apartmentId, List<Integer> numberOfGuestsInEveryRoom){
+        List<Room> rooms = roomRepository.getAllRoomsByApartmentId(apartmentId);
+
+        for(int i = 0; i < numberOfGuestsInEveryRoom.size(); i++){
+            rooms.get(i).setMaxNumberOfGuests(numberOfGuestsInEveryRoom.get(i));
+        }
+
+        roomRepository.saveAll(rooms);
+    }
+
+    private void updateComfortsInApartment(Apartment apartment, List<Integer> selectedComforts){
+        apartment.getApartmentComforts().clear();
+        Set<ApartmentComfort> comforts = new HashSet<>();
+
+        for(int comfort : selectedComforts){
+            comforts.add(new ApartmentComfort(comfort));
+        }
+
+        apartment.setApartmentComforts(comforts);
     }
 }

@@ -6,5 +6,5 @@ import rent.entities.Room;
 import java.util.List;
 
 public interface RoomRepository extends JpaRepository<Room, Integer> {
-    List<Room> findByApartmentId(int apartmentId);
+    List<Room> getAllRoomsByApartmentId(int apartmentId);
 }
