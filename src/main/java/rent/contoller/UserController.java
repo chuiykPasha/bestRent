@@ -27,7 +27,6 @@ import java.util.Collections;
 public class UserController {
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
@@ -62,9 +61,7 @@ public class UserController {
     public String showProfile(User user, Model model) {
         String avatar = user.getAvatarUrl() == null ? User.DEFAULT_AVATAR : user.getAvatarUrl();
         model.addAttribute("avatar", avatar);
-        model.addAttribute("userEmail", user.getEmail());
-        model.addAttribute("userName", user.getName());
-        model.addAttribute("userSurName", user.getSurName());
+        model.addAttribute("user", user);
         return "/userProfile/userProfile";
     }
 
@@ -89,7 +86,6 @@ public class UserController {
         user.setEmail(form.getEmail());
         user.setName(form.getName());
         user.setSurName(form.getSurName());
-        userRepository.save(user);
         return "/userProfile/changeProfile";
     }
 
@@ -110,12 +106,11 @@ public class UserController {
         }
 
         user.setPassword(passwordEncoder.encode(form.getNewPassword()));
-        userRepository.save(user);
         return "/userProfile/changeProfile";
     }
 
     @GetMapping("/user-photo")
-    public String userPhoto(@AuthenticationPrincipal User user, Model model, AddAvatarForm addAvatarForm) {
+    public String userPhoto(@AuthenticationPrincipal User user, Model model) {
         String avatarUrl = user.getAvatarUrl() != null ? user.getAvatarUrl() : User.DEFAULT_AVATAR;
         model.addAttribute("avatar", avatarUrl);
 
