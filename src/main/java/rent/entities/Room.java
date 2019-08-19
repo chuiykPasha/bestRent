@@ -32,9 +32,4 @@ public class Room {
         this.maxNumberOfGuests = maxNumberOfGuests;
         this.apartment = apartment;
     }
-
-    public Room(Integer id, int maxNumberOfGuests) {
-        this.id = id;
-        this.maxNumberOfGuests = maxNumberOfGuests;
-    }
 }
