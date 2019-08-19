@@ -29,10 +29,4 @@ public class AvailableToGuest {
         this.name = name;
         this.isActive = true;
     }
-
-    public AvailableToGuest(Integer id, String name) {
-        this.id = id;
-        this.name = name;
-        this.isActive = true;
-    }
 }
