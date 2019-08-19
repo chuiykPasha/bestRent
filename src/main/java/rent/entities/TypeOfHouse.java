@@ -30,10 +30,4 @@ public class TypeOfHouse {
         this.name = name;
         this.isActive = true;
     }
-
-    public TypeOfHouse(Integer id, String name) {
-        this.id = id;
-        this.name = name;
-        this.isActive = true;
-    }
 }
