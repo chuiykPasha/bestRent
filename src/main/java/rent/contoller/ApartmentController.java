@@ -26,6 +26,7 @@ import rent.service.BookingService;
 import rent.service.EmailService;
 import rent.service.UploadImageService;
 import rent.service.booking.BookingSharedRoom;
+import rent.service.booking.BookingType;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
@@ -39,9 +40,6 @@ public class ApartmentController {
     @Autowired
     private ApartmentRepository apartmentRepository;
     private final int sizeApartmentsInPage = 9;
-    private final String SHARED_ROOM = "Shared room";
-    private final String ENTIRE_ROOM = "Entire apartment";
-    private final String PRIVATE_ROOM = "Private room";
     @Autowired
     private BookingService bookingService;
 
@@ -79,11 +77,11 @@ public class ApartmentController {
 
         List<LocalDate> dates = new ArrayList<>();
 
-        if (apartment.getAvailableToGuest().getName().equals(ENTIRE_ROOM)) {
+        if (apartment.getAvailableToGuest().getName().equals(BookingType.ENTIRE_APARTMENT.getType())) {
             dates = bookingService.getBlockedDatesInEntireApartment(apartment.getCalendars());
-        } else if(apartment.getAvailableToGuest().getName().equals(SHARED_ROOM)){
+        } else if(apartment.getAvailableToGuest().getName().equals(BookingType.SHARED_ROOM.getType())){
             dates = bookingService.getBlockedDatesInSharedRoom(apartment.getCalendars(), apartment.getMaxNumberOfGuests());
-        } else if(apartment.getAvailableToGuest().getName().equals(PRIVATE_ROOM)){
+        } else if(apartment.getAvailableToGuest().getName().equals(BookingType.PRIVATE_ROOM.getType())){
             dates = bookingService.getBlockedDatesInPrivateRoom(apartment.getCalendars(), apartment.getRooms().size());
         }
 
