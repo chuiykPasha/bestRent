@@ -52,7 +52,7 @@ public class AddApartmentController {
         apartmentInfoForm.setComforts(apartmentComfortRepository.getAll());
         apartmentInfoForm.setTypeOfHouses(typeOfHouseRepository.getAll());
         apartmentInfoForm.setAvailableToGuests(availableToGuestRepository.getAll());
-        model.addAttribute("privateRoomId", findIdFromAvailableToGuests(apartmentInfoForm.getAvailableToGuests(),"Private Room"));
+        model.addAttribute("privateRoomId", findIdFromAvailableToGuests(apartmentInfoForm.getAvailableToGuests(),"Private room"));
         return "/apartment/createStepOne";
     }
 
