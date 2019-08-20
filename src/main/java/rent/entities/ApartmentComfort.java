@@ -27,10 +27,6 @@ public class ApartmentComfort {
     @ManyToMany(mappedBy = "apartmentComforts", fetch = FetchType.LAZY)
     private Set<Apartment> apartments = new HashSet<>();
 
-    public ApartmentComfort(int id) {
-        this.id = id;
-    }
-
     public ApartmentComfort(String name) {
         this.name = name;
         this.isActive = true;
