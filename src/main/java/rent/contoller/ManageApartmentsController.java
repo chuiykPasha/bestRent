@@ -242,7 +242,7 @@ public class ManageApartmentsController {
         Set<ApartmentComfort> comforts = new HashSet<>();
 
         for(int comfort : selectedComforts){
-            comforts.add(new ApartmentComfort(comfort));
+            comforts.add(apartmentComfortRepository.getOne(comfort));
         }
 
         apartment.setApartmentComforts(comforts);
