@@ -146,10 +146,9 @@
                             datepicker = new HotelDatepicker(input, {
                                 disabledDates: result.reservedDates,
                             });
-                        } else if(result.message.includes('For your number of guests you will need')){
+                        } else if(result.message === 'For your number of guests you will need booking more than one room.If you agree click reservation.'){
                             approve = true;
-                            showMsg.classList.remove('alert-danger');
-                            showMsg.classList.add('alert-success');
+                            showMsg.classList.add('alert-danger');
                         } else {
                             showMsg.classList.remove('alert-success');
                             showMsg.classList.add('alert-danger');

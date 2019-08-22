@@ -7,6 +7,7 @@ import rent.entities.ApartmentCalendar;
 import rent.repository.ApartmentCalendarRepository;
 import rent.repository.ApartmentRepository;
 
+import java.sql.Date;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -33,5 +34,18 @@ public abstract class AbstractBooking {
 
         returnsDate.add(endDate);
         return returnsDate;
+    }
+
+    protected boolean isApartmentFirstDayFreeAndArriveEqualsBookingEndDate(ApartmentCalendar order, Date end){
+        return order.isFirstDayFree() && order.getArrival().equals(end);
+    }
+
+    protected boolean isApartmentLastDayFreeAndDepartureEqualsBookingStartDate(ApartmentCalendar order, Date start){
+        return order.isLastDayFree() && order.getDeparture().equals(start);
+    }
+
+    protected boolean isOneOrderFallInArriveDateAndAnotherFallInDepartureDate(ApartmentCalendar firstOrder, ApartmentCalendar secondOrder, BookingInfoDto bookingInfoDto){
+        return isApartmentLastDayFreeAndDepartureEqualsBookingStartDate(firstOrder, bookingInfoDto.getStartDate()) && isApartmentFirstDayFreeAndArriveEqualsBookingEndDate(secondOrder, bookingInfoDto.getEndDate()) ||
+                isApartmentLastDayFreeAndDepartureEqualsBookingStartDate(secondOrder, bookingInfoDto.getStartDate()) && isApartmentFirstDayFreeAndArriveEqualsBookingEndDate(firstOrder, bookingInfoDto.getEndDate());
     }
 }

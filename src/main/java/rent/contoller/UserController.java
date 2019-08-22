@@ -86,6 +86,7 @@ public class UserController {
         user.setEmail(form.getEmail());
         user.setName(form.getName());
         user.setSurName(form.getSurName());
+        userRepository.save(user);
         return "/userProfile/changeProfile";
     }
 
@@ -120,6 +121,7 @@ public class UserController {
     @PostMapping("/user-photo")
     public String userPhotoSave(@AuthenticationPrincipal User user, @Valid AddAvatarForm addAvatarForm, Model model){
         String avatarUrl =  uploadImageService.uploadAvatar(addAvatarForm.getAvatar(), user.getEmail());
+        user.setAvatarUrl(avatarUrl);
         model.addAttribute("avatar", avatarUrl);
         return "/userProfile/userPhoto";
     }

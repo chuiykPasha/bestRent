@@ -44,6 +44,7 @@ public class UploadImageService {
         deleteUserAvatar(user.getAvatarPath());
         user.setAvatarPath(filePath);
         user.setAvatarUrl(getSharedUrlToImg(filePath));
+        userRepository.save(user);
         return user.getAvatarUrl();
     }
 

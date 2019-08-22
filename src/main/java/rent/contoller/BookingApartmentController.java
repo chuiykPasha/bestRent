@@ -7,11 +7,21 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import rent.dto.BookingInfoDto;
 import rent.dto.BookingResultDto;
+import rent.entities.Apartment;
 import rent.entities.ApartmentCalendar;
+import rent.entities.Room;
 import rent.entities.User;
 import rent.repository.ApartmentCalendarRepository;
+import rent.service.BookingService;
+import rent.service.booking.BookingEntireApartment;
+import rent.service.booking.BookingPrivateRoom;
+import rent.service.booking.BookingSharedRoom;
+import rent.service.booking.BookingType;
 
+import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,6 +30,8 @@ public class BookingApartmentController {
     @Autowired
     private ApartmentCalendarRepository apartmentCalendarRepository;
     private final int SIZE_HISTORY_IN_PAGE = 5;
+    @Autowired
+    private BookingService bookingService;
 
     @RequestMapping(value = "/apartment-booking", method = RequestMethod.POST)
     public @ResponseBody
@@ -28,7 +40,7 @@ public class BookingApartmentController {
                                       @RequestParam float price, @RequestParam boolean approve) {
         final int START_DATE = 0;
         final int END_DATE = 1;
-    /*
+
         if(bookingDates == null) {
             return new BookingResultDto("Wrong dates");
         }
@@ -42,28 +54,23 @@ public class BookingApartmentController {
         final Date startDate = Date.valueOf(dates[START_DATE]);
         final Date endDate = Date.valueOf(dates[END_DATE]);
 
-        if(availableToGuest.equals(ENTIRE_ROOM)) {
+        if(availableToGuest.equals(BookingType.ENTIRE_APARTMENT.getType())) {
             BookingInfoDto bookingInfoDto = BookingInfoDto.builder()
                     .apartmentId(apartmentId).startDate(startDate).endDate(endDate)
                     .guestsCount(guestsCount).user(user).price(price).build();
-           return bookingEntireApartment.booking(bookingInfoDto);
-        } else if (availableToGuest.equals(SHARED_ROOM)) {
+           return bookingService.bookingEntireApartment(bookingInfoDto);
+        } else if (availableToGuest.equals(BookingType.SHARED_ROOM.getType())) {
             BookingInfoDto bookingInfoDto = BookingInfoDto.builder()
                     .apartmentId(apartmentId).startDate(startDate).endDate(endDate)
                     .guestsCount(guestsCount).user(user).price(price).maxNumberOfGuests(maxNumberOfGuests).build();
-            return bookingSharedRoom.booking(bookingInfoDto);
-        } else if(availableToGuest.equals(PRIVATE_ROOM)){
-            if(approve){
-                if(!changedCalendars.isEmpty()) {
-                    apartmentCalendarRepository.saveAll(changedCalendars);
-                }
-                apartmentCalendarRepository.saveAll(newCalendars);
-
-                return new BookingResultDto(bookingService.getBlockedDatesInPrivateRoom(apartment.getCalendars(), apartment.getRooms().size()), "Reservation is successful");
-            }
-           return null;
+            return bookingService.bookingSharedRoom(bookingInfoDto);
+        } else if(availableToGuest.equals(BookingType.PRIVATE_ROOM.getType())) {
+            BookingInfoDto bookingInfoDto = BookingInfoDto.builder()
+                    .apartmentId(apartmentId).startDate(startDate).endDate(endDate)
+                    .guestsCount(guestsCount).user(user).price(price).maxNumberOfGuests(maxNumberOfGuests).approve(approve).build();
+            return bookingService.bookingPrivateRoom(bookingInfoDto);
         }
-    */
+
         return new BookingResultDto("ERROR");
     }
 

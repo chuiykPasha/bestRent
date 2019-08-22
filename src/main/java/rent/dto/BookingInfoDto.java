@@ -18,4 +18,5 @@ public class BookingInfoDto {
     private float price;
     private int maxNumberOfGuests;
     private int numberOfRooms;
+    private boolean approve;
 }

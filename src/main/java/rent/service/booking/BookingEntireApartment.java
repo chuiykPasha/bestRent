@@ -84,14 +84,6 @@ public class BookingEntireApartment extends AbstractBooking {
         }
     }
 
-    private boolean isApartmentFirstDayFreeAndArriveEqualsBookingEndDate(ApartmentCalendar order, Date end){
-        return order.isFirstDayFree() && order.getArrival().equals(end);
-    }
-
-    private boolean isApartmentLastDayFreeAndDepartureEqualsBookingStartDate(ApartmentCalendar order, Date start){
-        return order.isLastDayFree() && order.getDeparture().equals(start);
-    }
-
     private BookingResultDto bookingWhenOrderFallBetweenTwoApartments(ApartmentCalendar firstOrder, ApartmentCalendar secondOrder, BookingInfoDto bookingInfoDto){
         firstOrder.setLastDayFree(false);
         apartmentCalendarRepository.save(firstOrder);
@@ -100,10 +92,5 @@ public class BookingEntireApartment extends AbstractBooking {
         apartmentCalendarRepository.save(new ApartmentCalendar(bookingInfoDto.getStartDate(), bookingInfoDto.getEndDate(), new Apartment(bookingInfoDto.getApartmentId()),
                 false, false, bookingInfoDto.getGuestsCount(), bookingInfoDto.getUser(), bookingInfoDto.getPrice()));
         return new BookingResultDto(getBlockedDates(apartmentRepository.getOne(bookingInfoDto.getApartmentId()).getCalendars(), bookingInfoDto), "Reservation is successful");
-    }
-
-    private boolean isOneOrderFallInArriveDateAndAnotherFallInDepartureDate(ApartmentCalendar firstOrder, ApartmentCalendar secondOrder, BookingInfoDto bookingInfoDto){
-        return isApartmentLastDayFreeAndDepartureEqualsBookingStartDate(firstOrder, bookingInfoDto.getStartDate()) && isApartmentFirstDayFreeAndArriveEqualsBookingEndDate(secondOrder, bookingInfoDto.getEndDate()) ||
-                isApartmentLastDayFreeAndDepartureEqualsBookingStartDate(secondOrder, bookingInfoDto.getStartDate()) && isApartmentFirstDayFreeAndArriveEqualsBookingEndDate(firstOrder, bookingInfoDto.getEndDate());
     }
 }
