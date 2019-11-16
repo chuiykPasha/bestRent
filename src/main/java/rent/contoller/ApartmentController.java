@@ -65,8 +65,9 @@ public class ApartmentController {
         return "index";
     }
 
-    @GetMapping("/apartment/{apartment}")
-    public String showApartmentById(Apartment apartment, Model model, @AuthenticationPrincipal User user) {
+    @GetMapping("/apartment/{id}")
+    public String showApartmentById(@PathVariable("id") Integer id, Model model, @AuthenticationPrincipal User user) {
+        Apartment apartment = apartmentRepository.findById(id).get();
         model.addAttribute("apartment", apartment);
         model.addAttribute("apartmentId", apartment.getId());
         model.addAttribute("defaultAvatar", User.DEFAULT_AVATAR);
